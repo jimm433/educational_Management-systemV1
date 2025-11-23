@@ -4,13 +4,64 @@
  */
 
 // Firebase 配置
-const FIREBASE_CONFIG = {
-  projectId: "classhelper-aa6be",
-  apiKey: "AIzaSyCoJkuWqqi9vu0N9Sdis_mma6icFGGWddg"
-};
+// ⚠️ 安全提示：API Key 應儲存在 Google Apps Script 的 PropertiesService 中
+// 請執行 setupFirebaseConfig() 函數來設定 API Key
 
-// Firebase REST API 端點
-const FIRESTORE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents`;
+/**
+ * 取得 Firebase 配置
+ * API Key 從 PropertiesService 安全取得，避免硬編碼
+ */
+function getFirebaseConfig() {
+  return {
+    projectId: "classhelper-aa6be",
+    apiKey: getFirebaseApiKey()
+  };
+}
+
+/**
+ * 從 PropertiesService 取得 Firebase API Key
+ * 如果未設定，返回空字串（需要先執行 setupFirebaseConfig）
+ */
+function getFirebaseApiKey() {
+  const properties = PropertiesService.getScriptProperties();
+  return properties.getProperty('FIREBASE_API_KEY') || '';
+}
+
+/**
+ * 設定 Firebase API Key（只需執行一次）
+ * 在 Google Apps Script 編輯器中執行此函數，並提供您的 API Key
+ * 
+ * 使用方式：
+ * 1. 在 Google Apps Script 編輯器中開啟此檔案
+ * 2. 執行 setupFirebaseConfig('YOUR_API_KEY_HERE') 函數
+ * 3. 執行後請刪除或註解掉包含實際 API Key 的那行程式碼
+ * 
+ * 範例：
+ * setupFirebaseConfig('YOUR_API_KEY_HERE')
+ * 
+ * ⚠️ 重要：執行後請立即刪除包含真實 API Key 的程式碼行
+ */
+function setupFirebaseConfig(apiKey) {
+  if (!apiKey) {
+    Logger.log('⚠️ 請提供 API Key 作為參數：setupFirebaseConfig("YOUR_API_KEY")');
+    Logger.log('範例：setupFirebaseConfig("AIzaSy...")');
+    return;
+  }
+  
+  const properties = PropertiesService.getScriptProperties();
+  properties.setProperty('FIREBASE_API_KEY', apiKey);
+  Logger.log('✅ Firebase API Key 已安全儲存到 PropertiesService');
+  Logger.log('⚠️ 請確保此 API Key 已設定適當的限制（在 Google Cloud Console 中）');
+  Logger.log('⚠️ 請立即刪除或註解掉包含真實 API Key 的程式碼行');
+}
+
+/**
+ * 取得 Firestore REST API 端點 URL
+ */
+function getFirestoreUrl() {
+  const config = getFirebaseConfig();
+  return `https://firestore.googleapis.com/v1/projects/${config.projectId}/databases/(default)/documents`;
+}
 
 /**
  * 設定表單提交觸發器
@@ -223,7 +274,7 @@ function getTagsForQuestions(questionTexts) {
     console.log(`🔍 查詢 ${questionTexts.length} 個題目的標籤...`);
     
     // 查詢 Firestore questions 集合
-    const queryUrl = `${FIRESTORE_URL}/questions?pageSize=1000`;
+    const queryUrl = `${getFirestoreUrl()}/questions?pageSize=1000`;
     const response = UrlFetchApp.fetch(queryUrl, {
       method: 'GET',
       headers: {
@@ -292,7 +343,7 @@ function convertAnswersToFirestore(answers) {
  */
 function writeToFirestore(collection, docId, data) {
   try {
-    const url = `${FIRESTORE_URL}/${collection}/${docId}`;
+    const url = `${getFirestoreUrl()}/${collection}/${docId}`;
     
     const response = UrlFetchApp.fetch(url, {
       method: 'PATCH',
@@ -418,7 +469,7 @@ function cleanupDeletedResponses() {
     }
     
     // 查詢所有 grading_events
-    const queryUrl = `${FIRESTORE_URL}/grading_events?pageSize=1000`;
+    const queryUrl = `${getFirestoreUrl()}/grading_events?pageSize=1000`;
     const response = UrlFetchApp.fetch(queryUrl, {
       method: 'GET',
       headers: {
@@ -460,7 +511,7 @@ function cleanupDeletedResponses() {
  */
 function deleteResponseFromFirestore(docId) {
   try {
-    const url = `${FIRESTORE_URL}/grading_events/${docId}`;
+    const url = `${getFirestoreUrl()}/grading_events/${docId}`;
     
     const response = UrlFetchApp.fetch(url, {
       method: 'DELETE',
@@ -489,7 +540,7 @@ function deleteResponseFromFirestore(docId) {
 function isResponseAlreadyProcessed(formId, responseTime, respondentEmail) {
   try {
     // 查詢 Firestore 中是否存在相同的回應
-    const queryUrl = `${FIRESTORE_URL}/grading_events?pageSize=1000`;
+    const queryUrl = `${getFirestoreUrl()}/grading_events?pageSize=1000`;
     
     const response = UrlFetchApp.fetch(queryUrl, {
       method: 'GET',
@@ -527,7 +578,7 @@ function isResponseAlreadyProcessed(formId, responseTime, respondentEmail) {
  */
 function deleteResponseFromFirestore(docId) {
   try {
-    const url = `${FIRESTORE_URL}/grading_events/${docId}`;
+    const url = `${getFirestoreUrl()}/grading_events/${docId}`;
     
     const response = UrlFetchApp.fetch(url, {
       method: 'DELETE',
@@ -567,7 +618,7 @@ function cleanupDeletedResponses() {
     }
     
     // 查詢所有 grading_events
-    const queryUrl = `${FIRESTORE_URL}/grading_events?pageSize=1000`;
+    const queryUrl = `${getFirestoreUrl()}/grading_events?pageSize=1000`;
     const response = UrlFetchApp.fetch(queryUrl, {
       method: 'GET',
       headers: {
