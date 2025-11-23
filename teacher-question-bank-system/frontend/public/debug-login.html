@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入診斷 - 教育管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .section {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .section h2 {
+            color: #64B5F6;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            background: #1a1a1a;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .info-label {
+            color: #9E9E9E;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #FFF;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .status-ok {
+            color: #4CAF50;
+        }
+
+        .status-error {
+            color: #F44336;
+        }
+
+        .status-warning {
+            color: #FF9800;
+        }
+
+        .log-container {
+            background: #1a1a1a;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .log-success {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+
+        .log-error {
+            background: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+        }
+
+        .log-info {
+            background: rgba(33, 150, 243, 0.1);
+            color: #64B5F6;
+        }
+
+        .log-warning {
+            background: rgba(255, 152, 0, 0.1);
+            color: #FF9800;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        button.secondary {
+            background: #2196F3;
+        }
+
+        button.secondary:hover {
+            background: #1976D2;
+        }
+
+        button.danger {
+            background: #F44336;
+        }
+
+        button.danger:hover {
+            background: #D32F2F;
+        }
+
+        .json-viewer {
+            background: #1a1a1a;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        pre {
+            margin: 0;
+            color: #e0e0e0;
+        }
+
+        .button-group {
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 教育管理系統 - 登入診斷工具</h1>
+
+        <div class="button-group">
+            <button onclick="runFullDiagnosis()">執行完整診斷</button>
+            <button onclick="checkAuthStatus()" class="secondary">檢查登入狀態</button>
+            <button onclick="checkFirestoreData()" class="secondary">檢查 Firestore 資料</button>
+            <button onclick="clearAllCache()" class="danger">清除所有快取</button>
+            <button onclick="clearLogs()" class="secondary">清除日誌</button>
+        </div>
+
+        <div class="section">
+            <h2>📊 系統狀態</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Firebase 連線</div>
+                    <div class="info-value" id="firebaseStatus">檢查中...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">使用者登入狀態</div>
+                    <div class="info-value" id="authStatus">檢查中...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">使用者 UID</div>
+                    <div class="info-value" id="userUid">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">使用者 Email</div>
+                    <div class="info-value" id="userEmail">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Firestore users 文檔</div>
+                    <div class="info-value" id="firestoreUserDoc">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">快取版本</div>
+                    <div class="info-value" id="cacheVersion">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 診斷日誌</h2>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry log-info">等待診斷...</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>👤 使用者資料 (Firebase Auth)</h2>
+            <div class="json-viewer">
+                <pre id="authUserData">尚未載入</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📄 使用者文檔 (Firestore)</h2>
+            <div class="json-viewer">
+                <pre id="firestoreUserData">尚未載入</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎓 課程註冊資料 (courseEnrollments)</h2>
+            <div class="json-viewer">
+                <pre id="enrollmentsData">尚未載入</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💾 LocalStorage 內容</h2>
+            <div class="json-viewer">
+                <pre id="localStorageData">尚未載入</pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/firebase-config.js"></script>
+    <script>
+        const logs = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push({ timestamp, message, type });
+            
+            const logContainer = document.getElementById('logContainer');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '';
+            logs.length = 0;
+            addLog('日誌已清除', 'info');
+        }
+
+        async function checkAuthStatus() {
+            addLog('開始檢查登入狀態...', 'info');
+            
+            return new Promise((resolve) => {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        addLog('✅ 使用者已登入', 'success');
+                        document.getElementById('authStatus').innerHTML = '<span class="status-ok">✅ 已登入</span>';
+                        document.getElementById('userUid').textContent = user.uid;
+                        document.getElementById('userEmail').textContent = user.email;
+                        
+                        // 顯示完整使用者資料
+                        const authData = {
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName,
+                            photoURL: user.photoURL,
+                            emailVerified: user.emailVerified,
+                            metadata: {
+                                creationTime: user.metadata.creationTime,
+                                lastSignInTime: user.metadata.lastSignInTime
+                            }
+                        };
+                        document.getElementById('authUserData').textContent = JSON.stringify(authData, null, 2);
+                        
+                        resolve(user);
+                    } else {
+                        addLog('❌ 使用者未登入', 'error');
+                        document.getElementById('authStatus').innerHTML = '<span class="status-error">❌ 未登入</span>';
+                        document.getElementById('authUserData').textContent = '使用者未登入';
+                        resolve(null);
+                    }
+                });
+            });
+        }
+
+        async function checkFirestoreData() {
+            addLog('開始檢查 Firestore 資料...', 'info');
+            
+            const user = auth.currentUser;
+            if (!user) {
+                addLog('❌ 無法檢查 Firestore：使用者未登入', 'error');
+                return;
+            }
+
+            try {
+                // 檢查 users 集合
+                addLog(`查詢 users/${user.uid}...`, 'info');
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                
+                if (userDoc.exists) {
+                    addLog('✅ 找到使用者文檔', 'success');
+                    document.getElementById('firestoreUserDoc').innerHTML = '<span class="status-ok">✅ 存在</span>';
+                    const userData = userDoc.data();
+                    document.getElementById('firestoreUserData').textContent = JSON.stringify(userData, null, 2);
+                    
+                    addLog(`使用者角色: ${userData.role || '未設定'}`, 'info');
+                    addLog(`使用者名稱: ${userData.name || userData.displayName || '未設定'}`, 'info');
+                } else {
+                    addLog('❌ 使用者文檔不存在！', 'error');
+                    document.getElementById('firestoreUserDoc').innerHTML = '<span class="status-error">❌ 不存在</span>';
+                    document.getElementById('firestoreUserData').textContent = '使用者文檔不存在';
+                    
+                    addLog('⚠️ 這是問題所在！新使用者應該要有文檔。', 'warning');
+                }
+
+                // 檢查 courseEnrollments
+                addLog(`查詢 courseEnrollments (studentId == ${user.uid})...`, 'info');
+                const enrollments = await db.collection('courseEnrollments')
+                    .where('studentId', '==', user.uid)
+                    .get();
+                
+                addLog(`找到 ${enrollments.size} 個課程註冊`, enrollments.size > 0 ? 'success' : 'info');
+                
+                const enrollmentsArray = [];
+                enrollments.forEach(doc => {
+                    enrollmentsArray.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                document.getElementById('enrollmentsData').textContent = 
+                    enrollmentsArray.length > 0 
+                        ? JSON.stringify(enrollmentsArray, null, 2)
+                        : '尚未加入任何課程';
+
+            } catch (error) {
+                addLog(`❌ Firestore 錯誤: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function checkLocalStorage() {
+            addLog('檢查 LocalStorage...', 'info');
+            
+            const version = localStorage.getItem('app_last_version');
+            const errorCount = localStorage.getItem('app_error_count');
+            
+            document.getElementById('cacheVersion').textContent = version || '未設定';
+            
+            const localStorageData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                localStorageData[key] = localStorage.getItem(key);
+            }
+            
+            document.getElementById('localStorageData').textContent = JSON.stringify(localStorageData, null, 2);
+            
+            addLog(`快取版本: ${version || '未設定'}`, version === 'v5' ? 'success' : 'warning');
+            addLog(`錯誤計數: ${errorCount || '0'}`, 'info');
+        }
+
+        function checkFirebaseConnection() {
+            addLog('檢查 Firebase 連線...', 'info');
+            
+            if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+                addLog('✅ Firebase 已初始化', 'success');
+                document.getElementById('firebaseStatus').innerHTML = '<span class="status-ok">✅ 已連線</span>';
+                addLog(`專案 ID: ${firebase.app().options.projectId}`, 'info');
+                return true;
+            } else {
+                addLog('❌ Firebase 未初始化', 'error');
+                document.getElementById('firebaseStatus').innerHTML = '<span class="status-error">❌ 未連線</span>';
+                return false;
+            }
+        }
+
+        async function runFullDiagnosis() {
+            clearLogs();
+            addLog('🔍 開始執行完整診斷...', 'info');
+            addLog('='.repeat(50), 'info');
+            
+            // 1. 檢查 Firebase
+            checkFirebaseConnection();
+            
+            // 2. 檢查 LocalStorage
+            checkLocalStorage();
+            
+            // 3. 檢查登入狀態
+            const user = await checkAuthStatus();
+            
+            // 4. 檢查 Firestore 資料
+            if (user) {
+                await checkFirestoreData();
+            }
+            
+            addLog('='.repeat(50), 'info');
+            addLog('✅ 診斷完成', 'success');
+            
+            // 提供建議
+            if (user && !document.getElementById('firestoreUserDoc').textContent.includes('存在')) {
+                addLog('', 'info');
+                addLog('💡 建議操作:', 'warning');
+                addLog('1. 登出當前帳號', 'warning');
+                addLog('2. 清除快取 (使用下方按鈕)', 'warning');
+                addLog('3. 重新登入', 'warning');
+                addLog('4. 再次執行診斷確認問題已解決', 'warning');
+            }
+        }
+
+        function clearAllCache() {
+            if (confirm('確定要清除所有快取嗎？\n這將會登出並重新載入頁面。')) {
+                addLog('清除 LocalStorage...', 'info');
+                localStorage.clear();
+                
+                addLog('清除 SessionStorage...', 'info');
+                sessionStorage.clear();
+                
+                addLog('準備重新載入...', 'info');
+                setTimeout(() => {
+                    window.location.href = 'clear-cache.html?auto=1';
+                }, 1000);
+            }
+        }
+
+        // 頁面載入時自動執行診斷
+        window.addEventListener('DOMContentLoaded', () => {
+            addLog('診斷工具已就緒', 'success');
+            addLog('點擊「執行完整診斷」開始檢查', 'info');
+            
+            // 自動執行基本檢查
+            checkFirebaseConnection();
+            checkLocalStorage();
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批改數據診斷工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #1976d2;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background: #1565c0;
+        }
+        
+        pre {
+            background: #f5f5f5;
+            padding: 16px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 600px;
+        }
+        
+        .section {
+            margin: 24px 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        
+        .success {
+            color: #4caf50;
+        }
+        
+        .error {
+            color: #f44336;
+        }
+        
+        .warning {
+            color: #ff9800;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔍 批改數據診斷工具</h1>
+        <p>這個工具會檢查批改歷史的實際數據結構，幫助修復數據分析頁面。</p>
+
+        <div style="margin: 20px 0;">
+            <button class="btn" onclick="loadAndAnalyze()">🔍 載入並分析數據</button>
+            <button class="btn" onclick="testGeminiFormat()">🤖 測試 Gemini 格式化</button>
+        </div>
+
+        <div id="output"></div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "G-4MFQG2LB9Y"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        function addSection(title, content, type = 'info') {
+            const output = document.getElementById('output');
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = `
+                <h3 class="${type}">${title}</h3>
+                ${content}
+            `;
+            output.appendChild(section);
+        }
+
+        async function loadAndAnalyze() {
+            document.getElementById('output').innerHTML = '';
+
+            try {
+                addSection('📡 開始載入數據...', '正在從 Firestore 讀取批改記錄');
+
+                // 載入 grading_events
+                const snapshot = await db.collection('grading_events')
+                    .where('status', '==', 'completed')
+                    .limit(5)
+                    .get();
+
+                addSection('✅ 載入成功', `找到 ${snapshot.size} 筆批改記錄`, 'success');
+
+                if (snapshot.empty) {
+                    addSection('⚠️ 警告', '沒有找到批改記錄', 'warning');
+                    return;
+                }
+
+                // 分析第一筆數據
+                const firstDoc = snapshot.docs[0];
+                const data = firstDoc.data();
+
+                addSection('📋 完整數據結構', `<pre>${JSON.stringify(data, null, 2)}</pre>`);
+
+                // 分析關鍵欄位
+                const analysis = {
+                    'Document ID': firstDoc.id,
+                    '學生信箱': data.student_email || '無',
+                    '學生姓名': data.student_name || '無',
+                    '考試 ID': data.exam_id || data.examId || data.form_id || '無',
+                    '狀態': data.status || '無',
+                    '是否有 ai_result': data.ai_result ? '✅ 是' : '❌ 否',
+                    '是否有 answers': data.answers ? '✅ 是' : '❌ 否',
+                    '是否有 tags': data.tags ? '✅ 是' : '❌ 否',
+                    '是否有 courseId': data.courseId ? '✅ 是' : '❌ 否',
+                    '是否有 courseName': data.courseName ? '✅ 是' : '❌ 否'
+                };
+
+                let analysisHtml = '<ul>';
+                for (const [key, value] of Object.entries(analysis)) {
+                    analysisHtml += `<li><strong>${key}:</strong> ${value}</li>`;
+                }
+                analysisHtml += '</ul>';
+                addSection('🔍 關鍵欄位分析', analysisHtml);
+
+                // 分析 ai_result 結構
+                if (data.ai_result) {
+                    addSection('🤖 AI 批改結果結構', `<pre>${JSON.stringify(data.ai_result, null, 2)}</pre>`);
+
+                    if (data.ai_result.results && Array.isArray(data.ai_result.results)) {
+                        const firstQuestion = data.ai_result.results[0];
+                        addSection('📝 第一題的結構', `<pre>${JSON.stringify(firstQuestion, null, 2)}</pre>`);
+                    }
+                }
+
+                // 分析 answers 結構
+                if (data.answers) {
+                    addSection('✍️ Answers 結構', `<pre>${JSON.stringify(data.answers, null, 2)}</pre>`);
+                    addSection('🔑 Answers 的 Keys', `<pre>${JSON.stringify(Object.keys(data.answers), null, 2)}</pre>`);
+                }
+
+                // 嘗試查找關聯的考試資料
+                const examId = data.exam_id || data.examId || data.form_id;
+                if (examId) {
+                    addSection('🔍 查找考試資料...', `考試 ID: ${examId}`);
+
+                    const examSnapshot = await db.collection('exams')
+                        .where('formId', '==', examId)
+                        .limit(1)
+                        .get();
+
+                    if (!examSnapshot.empty) {
+                        const examData = examSnapshot.docs[0].data();
+                        addSection('📚 考試資料', `<pre>${JSON.stringify(examData, null, 2)}</pre>`, 'success');
+                    } else {
+                        addSection('⚠️ 未找到考試資料', `無法找到 formId=${examId} 的考試`, 'warning');
+                    }
+                }
+
+            } catch (error) {
+                addSection('❌ 錯誤', `<pre>${error.message}\n${error.stack}</pre>`, 'error');
+            }
+        }
+
+        async function testGeminiFormat() {
+            try {
+                addSection('🤖 測試 Gemini 格式化...', '正在載入數據並呼叫 Gemini API');
+
+                // 載入一筆批改記錄
+                const snapshot = await db.collection('grading_events')
+                    .where('status', '==', 'completed')
+                    .limit(1)
+                    .get();
+
+                if (snapshot.empty) {
+                    addSection('⚠️ 警告', '沒有找到批改記錄', 'warning');
+                    return;
+                }
+
+                const data = snapshot.docs[0].data();
+
+                // 呼叫後端的 Gemini 格式化 API
+                const response = await fetch('https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/formatGradingData', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        gradingData: data
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addSection('✅ Gemini 格式化成功', `<pre>${JSON.stringify(result.formatted, null, 2)}</pre>`, 'success');
+                } else {
+                    addSection('❌ Gemini 格式化失敗', `<pre>${JSON.stringify(result, null, 2)}</pre>`, 'error');
+                }
+
+            } catch (error) {
+                addSection('❌ 錯誤', `<pre>${error.message}\n${error.stack}</pre>`, 'error');
+            }
+        }
+    </script>
+</body>

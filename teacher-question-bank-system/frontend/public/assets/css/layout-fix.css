@@ -1,0 +1,72 @@
+/* 🔧 佈局修復補丁 - 修復跑版問題 */
+
+
+/* 確保側邊欄正確定位 */
+
+.sidebar {
+    width: 260px !important;
+    min-width: 260px !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    z-index: 100 !important;
+    overflow-x: hidden !important;
+}
+
+
+/* 確保 logo 文字是水平的 */
+
+.logo-text {
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+}
+
+
+/* 確保主內容區不被側邊欄覆蓋 */
+
+.main-wrapper {
+    margin-left: 260px !important;
+    width: calc(100% - 260px) !important;
+    min-height: 100vh !important;
+}
+
+
+/* 確保 app-container 正確顯示 */
+
+.app-container {
+    display: flex !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+
+/* 修復滾動條問題 */
+
+body {
+    overflow-x: hidden !important;
+}
+
+
+/* 確保側邊欄內容正確顯示 */
+
+.sidebar-header {
+    display: block !important;
+}
+
+.app-logo {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+}
+
+
+/* 確保主內容區正確滾動 */
+
+.main-content {
+    overflow-x: hidden !important;
+    width: 100% !important;
+}

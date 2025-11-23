@@ -1,0 +1,891 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統設定 - 教育管理系統</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入設定中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="5" width="14" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M3 8h14M7 5v-2M13 5v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">教育管理系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="../dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="question.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>題庫管理</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試管理</span>
+                    </a>
+                    <a href="course.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>課程管理</span>
+                    </a>
+                    <a href="grading.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>作業批改</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">分析與設定</div>
+                    <a href="analytic.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 14v-4M10 14V8M16 14v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>數據分析</span>
+                    </a>
+                    <a href="setting.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 2v2M10 16v2M18 10h-2M6 10H4M15.66 4.34l-1.41 1.41M5.75 14.25l-1.41 1.41M15.66 15.66l-1.41-1.41M5.75 5.75L4.34 4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>系統設定</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="../dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>系統設定</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">教師</div>
+                            <div class="user-role">教師</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">系統設定</h1>
+                    <p class="page-subtitle">個人資料、AI 批改、通知與系統偏好設定</p>
+                </div>
+
+                <!-- 設定分頁 -->
+                <div class="settings-tabs">
+                    <button class="tab-btn active" onclick="switchTab('profile')">個人資料</button>
+                    <button class="tab-btn" onclick="switchTab('ai')">AI 批改設定</button>
+                    <button class="tab-btn" onclick="switchTab('notification')">通知設定</button>
+                    <button class="tab-btn" onclick="switchTab('system')">系統偏好</button>
+                    <button class="tab-btn" onclick="switchTab('backup')">備份與還原</button>
+                </div>
+
+                <!-- 個人資料 -->
+                <div class="settings-panel active" id="profilePanel">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">個人資料</h3>
+                            <p class="card-subtitle">管理您的個人資訊</p>
+                        </div>
+                        <div class="settings-content">
+                            <div class="profile-section">
+                                <div class="profile-avatar">
+                                    <div class="avatar-circle" id="avatarPreview">
+                                        <svg viewBox="0 0 20 20" fill="none" style="width: 48px; height: 48px;">
+                                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                                            <path d="M4 18c0-3 2.5-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('avatarInput').click()">更換頭像</button>
+                                    <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="uploadAvatar(event)">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">顯示名稱</label>
+                                    <input type="text" class="form-input" id="displayName" placeholder="您的名稱">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">電子郵件</label>
+                                    <input type="email" class="form-input" id="email" readonly>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">學校/機構</label>
+                                    <input type="text" class="form-input" id="institution" placeholder="例如：世新大學">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">科系/部門</label>
+                                    <input type="text" class="form-input" id="department" placeholder="例如：資訊管理學系">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">個人簡介</label>
+                                    <textarea class="form-textarea" id="bio" rows="4" placeholder="簡短介紹您自己..."></textarea>
+                                </div>
+
+                                <button class="btn btn-primary" onclick="saveProfile()">儲存個人資料</button>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="password-section">
+                                <h4 class="section-title">修改密碼</h4>
+                                <div class="form-group">
+                                    <label class="form-label">目前密碼</label>
+                                    <input type="password" class="form-input" id="currentPassword">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">新密碼</label>
+                                    <input type="password" class="form-input" id="newPassword">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">確認新密碼</label>
+                                    <input type="password" class="form-input" id="confirmPassword">
+                                </div>
+                                <button class="btn btn-secondary" onclick="changePassword()">更新密碼</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI 批改設定 -->
+                <div class="settings-panel" id="aiPanel">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">AI 批改設定</h3>
+                            <p class="card-subtitle">配置 AI 批改引擎參數</p>
+                        </div>
+                        <div class="settings-content">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">啟用 AI 批改</div>
+                                    <div class="setting-desc">自動使用 AI 進行作業批改</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="enableAI" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">三代理人協作模式</div>
+                                    <div class="setting-desc">使用 GPT、Claude、Gemini 三個 AI 共同批改</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="multiAgent" checked>
+                                    <span class="toggle-slider"></span>
+                                            </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">默認批改提詞模板</label>
+                                <select class="form-select" id="defaultPrompt">
+                                    <option value="general">通用</option>
+                                    <option value="programming">程式設計</option>
+                                    <option value="math">數學</option>
+                                    <option value="chinese">中文</option>
+                                    <option value="english">英文</option>
+                                    <option value="science">自然科學</option>
+                                        </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">批改嚴格度</label>
+                                <select class="form-select" id="strictness">
+                                    <option value="lenient">寬鬆</option>
+                                    <option value="moderate" selected>中等</option>
+                                    <option value="strict">嚴格</option>
+                                        </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">自訂批改提詞</label>
+                                <textarea class="form-textarea" id="customPrompt" rows="6" placeholder="輸入您的自訂批改提詞..."></textarea>
+                            </div>
+
+                            <button class="btn btn-primary" onclick="saveAISettings()">儲存 AI 設定</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 通知設定 -->
+                <div class="settings-panel" id="notificationPanel">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">通知設定</h3>
+                            <p class="card-subtitle">管理系統通知偏好</p>
+                        </div>
+                        <div class="settings-content">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">電子郵件通知</div>
+                                    <div class="setting-desc">透過電子郵件接收通知</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="emailNotif" checked>
+                                    <span class="toggle-slider"></span>
+                                        </label>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">新作業提交通知</div>
+                                    <div class="setting-desc">學生提交新作業時通知我</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="newSubmissionNotif" checked>
+                                    <span class="toggle-slider"></span>
+                                        </label>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">批改完成通知</div>
+                                    <div class="setting-desc">AI 批改完成後通知我</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="gradingCompleteNotif" checked>
+                                    <span class="toggle-slider"></span>
+                                        </label>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">考試時間提醒</div>
+                                    <div class="setting-desc">考試即將開始前提醒</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="examReminderNotif" checked>
+                                    <span class="toggle-slider"></span>
+                                        </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">提醒時間 (考試前)</label>
+                                <select class="form-select" id="reminderTime">
+                                    <option value="10">10 分鐘</option>
+                                    <option value="30" selected>30 分鐘</option>
+                                    <option value="60">1 小時</option>
+                                    <option value="1440">1 天</option>
+                                </select>
+                            </div>
+
+                            <button class="btn btn-primary" onclick="saveNotificationSettings()">儲存通知設定</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 系統偏好 -->
+                <div class="settings-panel" id="systemPanel">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">系統偏好</h3>
+                            <p class="card-subtitle">自訂系統外觀與行為</p>
+                        </div>
+                        <div class="settings-content">
+                            <div class="form-group">
+                                <label class="form-label">介面語言</label>
+                                <select class="form-select" id="language">
+                                    <option value="zh-TW" selected>繁體中文</option>
+                                    <option value="zh-CN">简体中文</option>
+                                    <option value="en">English</option>
+                                        </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">主題模式</label>
+                                <select class="form-select" id="theme">
+                                    <option value="light" selected>淺色</option>
+                                    <option value="dark">深色</option>
+                                    <option value="auto">自動</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">每頁顯示數量</label>
+                                <select class="form-select" id="pageSize">
+                                    <option value="10" selected>10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">自動儲存</div>
+                                    <div class="setting-desc">編輯題目時自動儲存草稿</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="autoSave" checked>
+                                    <span class="toggle-slider"></span>
+                                        </label>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">顯示教學提示</div>
+                                    <div class="setting-desc">首次使用功能時顯示引導</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="showTutorials" checked>
+                                    <span class="toggle-slider"></span>
+                                        </label>
+                            </div>
+
+                            <button class="btn btn-primary" onclick="saveSystemSettings()">儲存系統設定</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 備份與還原 -->
+                <div class="settings-panel" id="backupPanel">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">備份與還原</h3>
+                            <p class="card-subtitle">匯出與匯入您的數據</p>
+                        </div>
+                        <div class="settings-content">
+                            <div class="backup-section">
+                                <h4 class="section-title">匯出數據</h4>
+                                <p class="section-desc">下載您的題庫、考試、批改記錄等數據</p>
+                                <div class="backup-options">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="exportQuestions" checked>
+                                        <span>題庫</span>
+                                        </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="exportExams" checked>
+                                        <span>考試</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="exportCourses" checked>
+                                        <span>課程</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="exportGradings" checked>
+                                        <span>批改記錄</span>
+                                    </label>
+                                </div>
+                                <button class="btn btn-primary" onclick="exportData()">
+                                    <svg viewBox="0 0 20 20" fill="none" style="width: 16px; height: 16px;">
+                                        <path d="M10 2v10M6 8l4 4 4-4M3 16h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    匯出數據
+                                </button>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="restore-section">
+                                <h4 class="section-title">匯入數據</h4>
+                                <p class="section-desc">從備份文件還原數據</p>
+                                <div class="file-upload-area" onclick="document.getElementById('importFile').click()">
+                                    <svg viewBox="0 0 20 20" fill="none" style="width: 48px; height: 48px; opacity: 0.3;">
+                                        <path d="M10 16V6M6 10l4-4 4 4M3 4h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <p>點擊選擇備份文件</p>
+                                    <p style="font-size: 12px; color: var(--text-secondary);">支援 .json 格式</p>
+                                </div>
+                                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="danger-zone">
+                                <h4 class="section-title" style="color: var(--error-color);">危險區域</h4>
+                                <p class="section-desc">這些操作無法復原</p>
+                                <button class="btn btn-danger" onclick="clearAllData()">清除所有數據</button>
+                                <button class="btn btn-danger" onclick="deleteAccount()">刪除帳號</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        let currentUser = null;
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('⚙️ 系統設定頁面載入中...');
+            initializeSettingPage();
+        });
+
+        async function initializeSettingPage() {
+            try {
+                await checkAuthState();
+                await loadSettings();
+
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                console.log('✅ 系統設定頁面初始化完成');
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+                alert('初始化失敗：' + error.message);
+            }
+        }
+
+        function checkAuthState() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(function(user) {
+                    if (user) {
+                        console.log('✅ 使用者已登入:', user.email);
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        document.getElementById('email').value = user.email;
+                        document.getElementById('displayName').value = user.displayName || '';
+                        resolve(user);
+                    } else {
+                        console.log('❌ 使用者未登入');
+                        window.location.href = '../dashboard.html';
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        async function loadSettings() {
+            try {
+                const doc = await db.collection('user_settings').doc(currentUser.uid).get();
+
+                if (doc.exists) {
+                    const settings = doc.data();
+
+                    // 載入個人資料
+                    if (settings.profile) {
+                        if (settings.profile.displayName) document.getElementById('displayName').value = settings.profile.displayName;
+                        if (settings.profile.institution) document.getElementById('institution').value = settings.profile.institution;
+                        if (settings.profile.department) document.getElementById('department').value = settings.profile.department;
+                        if (settings.profile.bio) document.getElementById('bio').value = settings.profile.bio;
+                    }
+
+                    // 載入 AI 設定
+                    if (settings.ai) {
+                        if (settings.ai.enableAI !== undefined) document.getElementById('enableAI').checked = settings.ai.enableAI;
+                        if (settings.ai.multiAgent !== undefined) document.getElementById('multiAgent').checked = settings.ai.multiAgent;
+                        if (settings.ai.defaultPrompt) document.getElementById('defaultPrompt').value = settings.ai.defaultPrompt;
+                        if (settings.ai.strictness) document.getElementById('strictness').value = settings.ai.strictness;
+                        if (settings.ai.customPrompt) document.getElementById('customPrompt').value = settings.ai.customPrompt;
+                    }
+
+                    // 載入通知設定
+                    if (settings.notifications) {
+                        if (settings.notifications.email !== undefined) document.getElementById('emailNotif').checked = settings.notifications.email;
+                        if (settings.notifications.newSubmission !== undefined) document.getElementById('newSubmissionNotif').checked = settings.notifications.newSubmission;
+                        if (settings.notifications.gradingComplete !== undefined) document.getElementById('gradingCompleteNotif').checked = settings.notifications.gradingComplete;
+                        if (settings.notifications.examReminder !== undefined) document.getElementById('examReminderNotif').checked = settings.notifications.examReminder;
+                        if (settings.notifications.reminderTime) document.getElementById('reminderTime').value = settings.notifications.reminderTime;
+                    }
+
+                    // 載入系統設定
+                    if (settings.system) {
+                        if (settings.system.language) document.getElementById('language').value = settings.system.language;
+                        if (settings.system.theme) document.getElementById('theme').value = settings.system.theme;
+                        if (settings.system.pageSize) document.getElementById('pageSize').value = settings.system.pageSize;
+                        if (settings.system.autoSave !== undefined) document.getElementById('autoSave').checked = settings.system.autoSave;
+                        if (settings.system.showTutorials !== undefined) document.getElementById('showTutorials').checked = settings.system.showTutorials;
+                    }
+
+                    console.log('✅ 設定載入完成');
+                }
+            } catch (error) {
+                console.error('載入設定失敗:', error);
+            }
+        }
+
+        function switchTab(tabName) {
+            // 移除所有 active
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.remove('active'));
+
+            // 添加 active
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Panel').classList.add('active');
+        }
+
+        async function saveProfile() {
+            try {
+                const displayName = document.getElementById('displayName').value.trim();
+                const profileData = {
+                    displayName: displayName,
+                    institution: document.getElementById('institution').value,
+                    department: document.getElementById('department').value,
+                    bio: document.getElementById('bio').value,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // 同時更新 user_settings 和 Firebase Auth
+                await Promise.all([
+                    db.collection('user_settings').doc(currentUser.uid).set({
+                        profile: profileData
+                    }, {
+                        merge: true
+                    }),
+
+                    // 更新 Firebase Auth 顯示名稱
+                    displayName ? currentUser.updateProfile({
+                        displayName: displayName
+                    }) : Promise.resolve()
+                ]);
+
+                // 更新頁面上的名稱顯示
+                document.getElementById('userName').textContent = displayName || currentUser.email;
+
+                alert('個人資料已儲存！\n\n所有頁面的名稱將在重新整理後更新。');
+            } catch (error) {
+                console.error('儲存失敗:', error);
+                alert('儲存失敗：' + error.message);
+            }
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('請填寫所有密碼欄位');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert('新密碼與確認密碼不符');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('密碼長度至少 6 個字元');
+                return;
+            }
+
+            try {
+                // 重新驗證用戶
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    currentUser.email,
+                    currentPassword
+                );
+                await currentUser.reauthenticateWithCredential(credential);
+
+                // 更新密碼
+                await currentUser.updatePassword(newPassword);
+
+                alert('密碼已更新！');
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } catch (error) {
+                console.error('更新密碼失敗:', error);
+                if (error.code === 'auth/wrong-password') {
+                    alert('目前密碼錯誤');
+                } else {
+                    alert('更新密碼失敗：' + error.message);
+                }
+            }
+        }
+
+        async function uploadAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('檔案大小不能超過 5MB');
+                return;
+            }
+
+            try {
+                const storageRef = storage.ref();
+                const avatarRef = storageRef.child(`avatars/${currentUser.uid}`);
+
+                await avatarRef.put(file);
+                const url = await avatarRef.getDownloadURL();
+
+                await currentUser.updateProfile({
+                    photoURL: url
+                });
+
+                // 更新預覽
+                document.getElementById('avatarPreview').innerHTML = `<img src="${url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+
+                alert('頭像已更新！');
+            } catch (error) {
+                console.error('上傳頭像失敗:', error);
+                alert('上傳頭像失敗：' + error.message);
+            }
+        }
+
+        async function saveAISettings() {
+            try {
+                const aiSettings = {
+                    enableAI: document.getElementById('enableAI').checked,
+                    multiAgent: document.getElementById('multiAgent').checked,
+                    defaultPrompt: document.getElementById('defaultPrompt').value,
+                    strictness: document.getElementById('strictness').value,
+                    customPrompt: document.getElementById('customPrompt').value
+                };
+
+                await db.collection('user_settings').doc(currentUser.uid).set({
+                    ai: aiSettings,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, {
+                    merge: true
+                });
+
+                alert('AI 設定已儲存！');
+            } catch (error) {
+                console.error('儲存失敗:', error);
+                alert('儲存失敗：' + error.message);
+            }
+        }
+
+        async function saveNotificationSettings() {
+            try {
+                const notifSettings = {
+                    email: document.getElementById('emailNotif').checked,
+                    newSubmission: document.getElementById('newSubmissionNotif').checked,
+                    gradingComplete: document.getElementById('gradingCompleteNotif').checked,
+                    examReminder: document.getElementById('examReminderNotif').checked,
+                    reminderTime: parseInt(document.getElementById('reminderTime').value)
+                };
+
+                await db.collection('user_settings').doc(currentUser.uid).set({
+                    notifications: notifSettings,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, {
+                    merge: true
+                });
+
+                alert('通知設定已儲存！');
+            } catch (error) {
+                console.error('儲存失敗:', error);
+                alert('儲存失敗：' + error.message);
+            }
+        }
+
+        async function saveSystemSettings() {
+            try {
+                const systemSettings = {
+                    language: document.getElementById('language').value,
+                    theme: document.getElementById('theme').value,
+                    pageSize: parseInt(document.getElementById('pageSize').value),
+                    autoSave: document.getElementById('autoSave').checked,
+                    showTutorials: document.getElementById('showTutorials').checked
+                };
+
+                await db.collection('user_settings').doc(currentUser.uid).set({
+                    system: systemSettings,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, {
+                    merge: true
+                });
+
+                alert('系統設定已儲存！');
+
+                // 如果更改了主題，應用主題
+                if (systemSettings.theme === 'dark') {
+                    document.body.classList.add('dark-theme');
+                } else {
+                    document.body.classList.remove('dark-theme');
+                }
+            } catch (error) {
+                console.error('儲存失敗:', error);
+                alert('儲存失敗：' + error.message);
+            }
+        }
+
+        async function exportData() {
+            try {
+                const data = {
+                    questions: [],
+                    exams: [],
+                    courses: [],
+                    gradings: [],
+                    exportDate: new Date().toISOString()
+                };
+
+                if (document.getElementById('exportQuestions').checked) {
+                    const snapshot = await db.collection('questions').where('createdBy', '==', currentUser.uid).get();
+                    data.questions = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                }
+
+                if (document.getElementById('exportExams').checked) {
+                    const snapshot = await db.collection('exams').where('createdBy', '==', currentUser.uid).get();
+                    data.exams = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                }
+
+                if (document.getElementById('exportCourses').checked) {
+                    const snapshot = await db.collection('courses').where('createdBy', '==', currentUser.uid).get();
+                    data.courses = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                }
+
+                if (document.getElementById('exportGradings').checked) {
+                    const snapshot = await db.collection('grading_events').limit(1000).get();
+                    data.gradings = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                }
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], {
+                    type: 'application/json'
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                alert('數據已匯出！');
+            } catch (error) {
+                console.error('匯出失敗:', error);
+                alert('匯出失敗：' + error.message);
+            }
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    if (confirm('確定要匯入此備份嗎？這將覆蓋現有數據。')) {
+                        alert('匯入功能開發中\n\n此功能需要批次寫入大量數據，建議聯繫系統管理員協助。');
+                    }
+                } catch (error) {
+                    console.error('匯入失敗:', error);
+                    alert('匯入失敗：檔案格式不正確');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ 警告：這將刪除您所有的數據，且無法復原！確定要繼續嗎？')) {
+                if (confirm('請再次確認：刪除所有數據？')) {
+                    alert('清除功能已停用\n\n如需清除數據，請至 Firebase Console 手動操作。');
+                }
+            }
+        }
+
+        function deleteAccount() {
+            if (confirm('⚠️ 警告：這將永久刪除您的帳號和所有數據！確定要繼續嗎？')) {
+                if (confirm('請再次確認：刪除帳號？')) {
+                    alert('刪除帳號功能已停用\n\n如需刪除帳號，請聯繫系統管理員。');
+                }
+            }
+        }
+
+        // 登出功能
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
+            try {
+                await auth.signOut();
+                window.location.href = '../dashboard.html';
+            } catch (error) {
+                console.error('登出失敗:', error);
+            }
+        });
+    </script>
+
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

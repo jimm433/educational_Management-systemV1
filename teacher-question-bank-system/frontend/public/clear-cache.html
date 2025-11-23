@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清除快取 - 教育管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+        }
+        
+        h1 {
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        
+        .description {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        
+        .steps {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+        
+        .steps h2 {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .step:last-child {
+            margin-bottom: 0;
+        }
+        
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+        
+        .step-desc {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .keyboard-shortcuts {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .keyboard-shortcuts h3 {
+            font-size: 16px;
+            color: #92400e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .keyboard-shortcuts h3 svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+        
+        .shortcut {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px 0;
+        }
+        
+        .shortcut-label {
+            color: #92400e;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .kbd {
+            background: white;
+            border: 2px solid #d97706;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-family: monospace;
+            font-weight: 600;
+            color: #92400e;
+            margin: 0 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 150px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+        
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+        
+        .status {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            display: block;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .buttons {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+            }
+            .shortcut {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+        </div>
+
+        <h1>清除快取並重新整理</h1>
+        <p class="description">
+            如果您遇到頁面無法載入、功能異常或錯誤訊息，可能是瀏覽器快取了舊版本的檔案。 請使用以下方法清除快取。
+        </p>
+
+        <div class="keyboard-shortcuts">
+            <h3>
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                </svg> 快速鍵（最簡單）
+            </h3>
+            <div class="shortcut">
+                <span class="shortcut-label">Windows / Linux:</span>
+                <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Shift</kbd> + <kbd class="kbd">R</kbd>
+            </div>
+            <div class="shortcut">
+                <span class="shortcut-label">Mac:</span>
+                <kbd class="kbd">Cmd</kbd> + <kbd class="kbd">Shift</kbd> + <kbd class="kbd">R</kbd>
+            </div>
+        </div>
+
+        <div class="steps">
+            <h2>或使用自動清除功能</h2>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">點擊「自動清除快取」按鈕</div>
+                    <div class="step-desc">系統會自動清除 LocalStorage、SessionStorage 等快取資料</div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">頁面會自動重新載入</div>
+                    <div class="step-desc">載入最新版本的檔案</div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">重新登入</div>
+                    <div class="step-desc">使用您的帳號重新登入系統</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="autoClearCache()">自動清除快取</button>
+            <button class="btn btn-secondary" onclick="goBack()">返回登入</button>
+        </div>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+
+        function autoClearCache() {
+            try {
+                showStatus('正在清除快取...', 'info');
+
+                // 清除 LocalStorage
+                localStorage.clear();
+                console.log('✅ LocalStorage 已清除');
+
+                // 清除 SessionStorage
+                sessionStorage.clear();
+                console.log('✅ SessionStorage 已清除');
+
+                // 清除 Service Worker（如果有）
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                        for (let registration of registrations) {
+                            registration.unregister();
+                            console.log('✅ Service Worker 已清除');
+                        }
+                    });
+                }
+
+                // 清除 IndexedDB（Firebase 可能使用）
+                if ('indexedDB' in window) {
+                    indexedDB.databases().then((databases) => {
+                        databases.forEach((db) => {
+                            indexedDB.deleteDatabase(db.name);
+                            console.log('✅ IndexedDB 已清除:', db.name);
+                        });
+                    });
+                }
+
+                showStatus('快取已清除！正在重新載入...', 'success');
+
+                // 延遲後強制重新載入
+                setTimeout(() => {
+                    // 強制重新載入（繞過快取）
+                    window.location.href = window.location.origin + '/index.html?t=' + Date.now();
+                }, 1000);
+
+            } catch (error) {
+                console.error('❌ 清除快取失敗:', error);
+                showStatus('自動清除失敗，請使用快速鍵 Ctrl+Shift+R 手動清除', 'info');
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // 監聽鍵盤快捷鍵
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+Shift+R 或 Cmd+Shift+R
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+                e.preventDefault();
+                showStatus('偵測到快速鍵！頁面將強制重新整理...', 'info');
+                setTimeout(() => {
+                    location.reload(true);
+                }, 500);
+            }
+        });
+
+        // 頁面載入時檢查 URL 參數
+        window.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('auto') === '1') {
+                showStatus('自動清除模式...', 'info');
+                setTimeout(() => {
+                    autoClearCache();
+                }, 500);
+            }
+        });
+    </script>
+</body>
+
+</html>

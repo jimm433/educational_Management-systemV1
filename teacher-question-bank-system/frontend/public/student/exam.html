@@ -1,0 +1,599 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考試測驗 - 學生系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/student.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入考試列表中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">學生系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="course.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>我的課程</span>
+                    </a>
+                    <a href="exam.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試測驗</span>
+                    </a>
+                    <a href="assignment.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>作業繳交</span>
+                    </a>
+                    <a href="result.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>成績查詢</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">學習工具</div>
+                    <a href="profile.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>個人資料</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>考試測驗</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">學生</div>
+                            <div class="user-role">學生</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">考試測驗</h1>
+                    <p class="page-subtitle">查看和參加您的課程考試</p>
+                </div>
+
+                <!-- 工具欄 -->
+                <div class="toolbar">
+                    <div class="search-section">
+                        <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜尋考試標題或課程...">
+                    </div>
+                    <div class="toolbar-actions">
+                        <select class="filter-select" id="statusFilter">
+                            <option value="">所有狀態</option>
+                            <option value="available">可參加</option>
+                            <option value="completed">已完成</option>
+                            <option value="upcoming">即將開始</option>
+                            <option value="expired">已過期</option>
+                        </select>
+                        <select class="filter-select" id="courseFilter">
+                            <option value="">所有課程</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="refreshExams()">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M3 10a7 7 0 0112-5M17 10a7 7 0 01-12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            重新整理
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalExams">0</div>
+                        <div class="stat-label">總考試數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="availableExams">0</div>
+                        <div class="stat-label">可參加</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5"/>
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="completedExams">0</div>
+                        <div class="stat-label">已完成</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="averageScore">0%</div>
+                        <div class="stat-label">平均分數</div>
+                    </div>
+                </div>
+
+                <!-- 考試列表 -->
+                <div class="section-card">
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('all')">全部考試</button>
+                        <button class="tab-btn" onclick="switchTab('available')">可參加</button>
+                        <button class="tab-btn" onclick="switchTab('completed')">已完成</button>
+                        <button class="tab-btn" onclick="switchTab('upcoming')">即將開始</button>
+                    </div>
+
+                    <div class="courses-grid" id="examsGrid">
+                        <!-- 動態生成考試卡片 -->
+                    </div>
+
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <div class="empty-icon">📝</div>
+                        <h3>沒有找到考試</h3>
+                        <p>請加入課程或等待老師發布考試</p>
+                        <a href="course.html" class="btn btn-primary">瀏覽課程</a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/firebase-config.js"></script>
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script>
+        console.log('📝 學生考試頁面載入中...');
+
+        let currentUser = null;
+        let allExams = [];
+        let filteredExams = [];
+        let currentTab = 'all';
+        let myCourses = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        async function initializePage() {
+            try {
+                // Firebase 已經在 firebase-config.js 中初始化
+                // 直接使用全域的 auth 和 db
+
+                await checkAuth();
+                await loadMyCourses();
+                await loadExams();
+
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                bindEvents();
+                console.log('✅ 考試頁面初始化完成');
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+                alert('初始化失敗：' + error.message);
+            }
+        }
+
+        function checkAuth() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        resolve();
+                    } else {
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        async function loadMyCourses() {
+            try {
+                const enrollmentsSnapshot = await db.collection('courseEnrollments')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('status', '==', 'enrolled')
+                    .get();
+
+                myCourses = [];
+                for (const doc of enrollmentsSnapshot.docs) {
+                    const enrollment = doc.data();
+                    const courseDoc = await db.collection('courses').doc(enrollment.courseId).get();
+                    if (courseDoc.exists) {
+                        myCourses.push({
+                            id: courseDoc.id,
+                            ...courseDoc.data()
+                        });
+                    }
+                }
+
+                console.log(`✅ 載入了 ${myCourses.length} 個課程`);
+                populateCourseFilter();
+            } catch (error) {
+                console.error('❌ 載入課程失敗:', error);
+            }
+        }
+
+        function populateCourseFilter() {
+            const courseFilter = document.getElementById('courseFilter');
+            courseFilter.innerHTML = '<option value="">所有課程</option>';
+            myCourses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = course.name || course.courseName;
+                courseFilter.appendChild(option);
+            });
+        }
+
+        async function loadExams() {
+            try {
+                console.log('📝 載入考試...');
+                allExams = [];
+
+                if (myCourses.length === 0) {
+                    renderExams();
+                    updateStatistics();
+                    return;
+                }
+
+                for (const course of myCourses) {
+                    const examsSnapshot = await db.collection('exams')
+                        .where('courseId', '==', course.id)
+                        .get();
+
+                    for (const doc of examsSnapshot.docs) {
+                        const examData = {
+                            id: doc.id,
+                            ...doc.data()
+                        };
+
+                        // 檢查是否已完成
+                        const submissionSnapshot = await db.collection('submissions')
+                            .where('studentId', '==', currentUser.uid)
+                            .where('examId', '==', doc.id)
+                            .limit(1)
+                            .get();
+
+                        examData.isCompleted = !submissionSnapshot.empty;
+                        examData.submission = submissionSnapshot.empty ? null : submissionSnapshot.docs[0].data();
+                        examData.courseName = course.name || course.courseName;
+                        examData.examStatus = getExamStatus(examData);
+
+                        allExams.push(examData);
+                    }
+                }
+
+                console.log(`✅ 載入了 ${allExams.length} 個考試`);
+                applyFilters();
+                updateStatistics();
+            } catch (error) {
+                console.error('❌ 載入考試失敗:', error);
+                renderExams();
+                updateStatistics();
+            }
+        }
+
+        function getExamStatus(exam) {
+            if (exam.isCompleted) return 'completed';
+
+            const now = new Date();
+            if (exam.startTime && exam.startTime.toDate) {
+                if (now < exam.startTime.toDate()) return 'upcoming';
+            }
+            if (exam.endTime && exam.endTime.toDate) {
+                if (now > exam.endTime.toDate()) return 'expired';
+            }
+
+            return 'available';
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const courseFilter = document.getElementById('courseFilter').value;
+
+            filteredExams = allExams.filter(exam => {
+                const matchesSearch = !searchTerm ||
+                    (exam.title || '').toLowerCase().includes(searchTerm) ||
+                    (exam.courseName || '').toLowerCase().includes(searchTerm);
+
+                const matchesStatus = !statusFilter || exam.examStatus === statusFilter;
+                const matchesCourse = !courseFilter || exam.courseId === courseFilter;
+                const matchesTab = currentTab === 'all' || exam.examStatus === currentTab;
+
+                return matchesSearch && matchesStatus && matchesCourse && matchesTab;
+            });
+
+            renderExams();
+        }
+
+        function renderExams() {
+            const container = document.getElementById('examsGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredExams.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            container.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            let html = '';
+            filteredExams.forEach(exam => {
+                html += createExamCard(exam);
+            });
+            container.innerHTML = html;
+        }
+
+        function createExamCard(exam) {
+            const statusMap = {
+                'available': {
+                    text: '可參加',
+                    class: 'active'
+                },
+                'completed': {
+                    text: '已完成',
+                    class: 'completed'
+                },
+                'upcoming': {
+                    text: '即將開始',
+                    class: 'pending'
+                },
+                'expired': {
+                    text: '已過期',
+                    class: 'inactive'
+                }
+            };
+            const status = statusMap[exam.examStatus] || statusMap.available;
+
+            let actionBtn = '';
+            if (exam.examStatus === 'available') {
+                actionBtn = `<button class="btn btn-sm btn-primary" onclick="startExam('${exam.id}')">開始考試</button>`;
+            } else if (exam.examStatus === 'completed') {
+                actionBtn = `<button class="btn btn-sm btn-secondary" onclick="viewResult('${exam.submission.id}')">查看成績</button>`;
+            } else if (exam.examStatus === 'upcoming') {
+                actionBtn = `<button class="btn btn-sm btn-secondary" disabled>尚未開始</button>`;
+            } else {
+                actionBtn = `<button class="btn btn-sm btn-secondary" disabled>已過期</button>`;
+            }
+
+            return `
+                <div class="course-card">
+                    <div class="course-card-header">
+                        <h3 class="course-card-title">${exam.title || '未命名考試'}</h3>
+                        <span class="badge badge-${status.class}">${status.text}</span>
+                    </div>
+                    <p class="course-card-desc">${exam.description || '無描述'}</p>
+                    <div class="course-meta">
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            ${exam.courseName || '未知課程'}
+                        </div>
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            ${exam.duration || 60} 分鐘
+                        </div>
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            ${(exam.questions || []).length} 題
+                        </div>
+                    </div>
+                    ${exam.submission ? `
+                        <div class="progress-section">
+                            <div class="progress-label">
+                                <span>得分</span>
+                                <span>${exam.submission.final_score || 0} / ${exam.submission.total_points || 100}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${Math.round((exam.submission.final_score / exam.submission.total_points) * 100)}%"></div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div class="course-card-footer">
+                        ${actionBtn}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStatistics() {
+            document.getElementById('totalExams').textContent = allExams.length;
+            document.getElementById('availableExams').textContent = allExams.filter(e => e.examStatus === 'available').length;
+            document.getElementById('completedExams').textContent = allExams.filter(e => e.examStatus === 'completed').length;
+
+            const completedExams = allExams.filter(e => e.examStatus === 'completed' && e.submission);
+            if (completedExams.length > 0) {
+                const avgScore = Math.round(
+                    completedExams.reduce((sum, e) => sum + ((e.submission.final_score / e.submission.total_points) * 100), 0) / completedExams.length
+                );
+                document.getElementById('averageScore').textContent = avgScore + '%';
+            } else {
+                document.getElementById('averageScore').textContent = '0%';
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            applyFilters();
+        }
+
+        async function startExam(examId) {
+            try {
+                // 從 allExams 中找到考試資料
+                const exam = allExams.find(e => e.id === examId);
+                if (!exam) {
+                    alert('找不到考試資料');
+                    return;
+                }
+
+                // 檢查考試時間
+                const now = new Date();
+                
+                // 檢查開始時間
+                if (exam.startDate) {
+                    const startDate = exam.startDate.toDate ? exam.startDate.toDate() : new Date(exam.startDate);
+                    if (now < startDate) {
+                        alert(`考試尚未開始\n\n開始時間：${startDate.toLocaleString('zh-TW')}`);
+                        return;
+                    }
+                }
+                
+                // 檢查截止時間
+                if (exam.dueDate) {
+                    const dueDate = exam.dueDate.toDate ? exam.dueDate.toDate() : new Date(exam.dueDate);
+                    if (now > dueDate) {
+                        alert(`考試已截止\n\n截止時間：${dueDate.toLocaleString('zh-TW')}\n\n如需補考，請聯繫老師。`);
+                        return;
+                    }
+                }
+
+                // 檢查是否有 Google Forms 連結
+                let formUrl = exam.formUrl || exam.googleFormUrl || exam.formLink;
+                
+                // 如果沒有直接的 formUrl，嘗試從 formId 建立連結
+                if (!formUrl && exam.formId) {
+                    formUrl = `https://docs.google.com/forms/d/${exam.formId}/viewform`;
+                }
+                
+                if (!formUrl) {
+                    alert('此考試沒有 Google Forms 連結，請聯繫老師。');
+                    return;
+                }
+                
+                // 確認後開啟 Google Forms
+                if (confirm('確定要開始考試嗎？\n\n系統將開啟 Google Forms 表單進行作答。')) {
+                    // 在新分頁開啟 Google Forms
+                    window.open(formUrl, '_blank');
+                }
+            } catch (error) {
+                console.error('❌ 開始考試失敗:', error);
+                alert('開始考試失敗：' + error.message);
+            }
+        }
+
+        function viewResult(submissionId) {
+            window.location.href = `result.html?submissionId=${submissionId}`;
+        }
+
+        function refreshExams() {
+            window.location.reload();
+        }
+
+        function bindEvents() {
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = '../index.html';
+                }).catch(error => {
+                    console.error('登出失敗:', error);
+                });
+            });
+
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('courseFilter').addEventListener('change', applyFilters);
+        }
+    </script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

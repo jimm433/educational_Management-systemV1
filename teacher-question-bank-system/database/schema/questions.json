@@ -1,0 +1,195 @@
+{
+    "questions": {
+        "description": "題目資料集合",
+        "fields": {
+            "id": {
+                "type": "string",
+                "description": "題目唯一識別碼",
+                "required": true
+            },
+            "title": {
+                "type": "string",
+                "description": "題目標題",
+                "required": true
+            },
+            "content": {
+                "type": "string",
+                "description": "題目內容",
+                "required": true
+            },
+            "type": {
+                "type": "string",
+                "description": "題目類型",
+                "enum": ["multiple_choice", "true_false", "short_answer", "essay", "fill_blank", "matching"],
+                "required": true
+            },
+            "difficulty": {
+                "type": "string",
+                "description": "難度等級",
+                "enum": ["easy", "medium", "hard"],
+                "required": true
+            },
+            "category": {
+                "type": "string",
+                "description": "題目分類",
+                "required": true
+            },
+            "subject": {
+                "type": "string",
+                "description": "科目",
+                "required": true
+            },
+            "tags": {
+                "type": "array",
+                "description": "標籤列表",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "options": {
+                "type": "array",
+                "description": "選項列表（選擇題適用）",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "required": true
+                        },
+                        "text": {
+                            "type": "string",
+                            "required": true
+                        },
+                        "isCorrect": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                }
+            },
+            "correctAnswer": {
+                "type": "string",
+                "description": "正確答案"
+            },
+            "explanation": {
+                "type": "string",
+                "description": "解答說明"
+            },
+            "points": {
+                "type": "number",
+                "description": "配分",
+                "default": 1
+            },
+            "timeLimit": {
+                "type": "number",
+                "description": "作答時間限制（秒）"
+            },
+            "attachments": {
+                "type": "array",
+                "description": "附件列表",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": ["image", "audio", "video", "document"]
+                        },
+                        "url": {
+                            "type": "string"
+                        },
+                        "filename": {
+                            "type": "string"
+                        },
+                        "size": {
+                            "type": "number"
+                        }
+                    }
+                }
+            },
+            "metadata": {
+                "type": "object",
+                "description": "題目元資料",
+                "properties": {
+                    "source": {
+                        "type": "string",
+                        "description": "題目來源"
+                    },
+                    "reference": {
+                        "type": "string",
+                        "description": "參考資料"
+                    },
+                    "keywords": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "statistics": {
+                "type": "object",
+                "description": "題目統計資料",
+                "properties": {
+                    "totalAttempts": {
+                        "type": "number",
+                        "default": 0
+                    },
+                    "correctAttempts": {
+                        "type": "number",
+                        "default": 0
+                    },
+                    "averageTime": {
+                        "type": "number",
+                        "description": "平均作答時間（秒）"
+                    },
+                    "difficultyRating": {
+                        "type": "number",
+                        "description": "實際難度評分"
+                    }
+                }
+            },
+            "createdBy": {
+                "type": "string",
+                "description": "建立者 UID",
+                "required": true
+            },
+            "createdAt": {
+                "type": "timestamp",
+                "description": "建立時間",
+                "required": true
+            },
+            "updatedAt": {
+                "type": "timestamp",
+                "description": "最後更新時間",
+                "required": true
+            },
+            "isActive": {
+                "type": "boolean",
+                "description": "是否啟用",
+                "default": true
+            },
+            "version": {
+                "type": "number",
+                "description": "版本號",
+                "default": 1
+            }
+        },
+        "indexes": [{
+                "fields": ["createdBy", "createdAt"]
+            },
+            {
+                "fields": ["category", "subject"]
+            },
+            {
+                "fields": ["difficulty", "type"]
+            },
+            {
+                "fields": ["tags"],
+                "type": "array"
+            },
+            {
+                "fields": ["isActive", "createdAt"]
+            }
+        ]
+    }
+}

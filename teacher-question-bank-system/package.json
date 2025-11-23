@@ -1,0 +1,22 @@
+{
+    "name": "teacher-question-bank-system",
+    "version": "2.0.0",
+    "description": "教師題庫管理系統 - 整合題庫管理和 AI 自動批改功能",
+    "scripts": {
+        "dev": "cd frontend && npm run dev",
+        "build": "cd frontend && npm run build",
+        "deploy": "firebase deploy"
+    },
+    "keywords": [
+        "education",
+        "question-bank",
+        "firebase",
+        "ai-grading"
+    ],
+    "author": "",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": ""
+    }
+}

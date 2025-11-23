@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的課程 - 學生端</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <!-- 外部 CSS -->
+    <link rel="stylesheet" href="../assets/css/student-course.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="spinner"></div>
+        <div>正在載入課程資料...</div>
+    </div>
+
+    <!-- 主要內容 -->
+    <div id="mainContent" class="app-container" style="display: none;">
+        <!-- 頂部導航 -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="../dashboard.html">首頁</a>
+                    <span>/</span>
+                    <span>我的課程</span>
+                </div>
+                <div class="user-menu">
+                    <div class="user-info">
+                        <div class="user-name" id="userName">載入中...</div>
+                        <div class="user-role">學生</div>
+                    </div>
+                    <button id="logoutBtn" class="logout-btn">登出</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要內容區域 -->
+        <main class="main-content">
+            <h1 class="page-title">我的課程</h1>
+            <p class="page-subtitle">管理您的學習課程，查看進度和參與活動</p>
+
+            <!-- 加入課程按鈕 -->
+            <div class="join-course-section">
+                <button class="join-course-btn" onclick="openJoinCourseModal()">
+                    📚 加入新課程
+                </button>
+            </div>
+
+            <!-- 搜尋和篩選區域 -->
+            <section class="search-filter-section">
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="搜尋課程名稱、教師或描述...">
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all" onclick="applyFilter('all')">全部課程</button>
+                        <button class="filter-btn" data-filter="active" onclick="applyFilter('active')">進行中</button>
+                        <button class="filter-btn" data-filter="inactive" onclick="applyFilter('inactive')">已結束</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 課程網格 -->
+            <div id="coursesGrid" class="courses-grid">
+                <!-- 課程卡片將由 JavaScript 動態生成 -->
+            </div>
+        </main>
+    </div>
+
+    <!-- 加入課程模態框 -->
+    <div id="joinCourseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">加入課程</h2>
+                <button class="close-btn" onclick="closeJoinCourseModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="courseCode" class="form-label">課程代碼</label>
+                <input type="text" id="courseCode" class="form-input" placeholder="請輸入課程代碼">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-cancel" onclick="closeJoinCourseModal()">取消</button>
+                <button class="btn btn-submit" onclick="joinCourseByCode()">加入課程</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 課程詳情模態框 -->
+    <div id="courseDetailsModal" class="modal">
+        <div class="modal-content">
+            <!-- 課程詳情內容將由 JavaScript 動態生成 -->
+        </div>
+    </div>
+
+    <!-- 通知 -->
+    <div id="notification" class="notification">
+        <span id="notificationMessage"></span>
+    </div>
+
+    <!-- 外部 JavaScript -->
+    <script src="../assets/js/student-course.js"></script>
+
+    <script>
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // 頁面載入
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📚 學生課程頁面已載入');
+            checkAuthState();
+            bindEventListeners();
+        });
+
+        // 檢查身份驗證狀態
+        function checkAuthState() {
+            auth.onAuthStateChanged(function(user) {
+                if (user) {
+                    document.getElementById('userName').textContent = user.displayName || user.email;
+                    console.log('✅ 用戶已登入:', user.uid);
+                } else {
+                    console.log('❌ 用戶未登入');
+                    window.location.href = '../index.html';
+                }
+            });
+        }
+
+        // 綁定事件監聽器
+        function bindEventListeners() {
+            // 登出按鈕
+            document.getElementById('logoutBtn').addEventListener('click', async function() {
+                if (confirm('確定要登出嗎？')) {
+                    try {
+                        await auth.signOut();
+                        console.log('✅ 登出成功');
+                        window.location.href = '../index.html';
+                    } catch (error) {
+                        console.error('❌ 登出失敗:', error);
+                        alert('登出失敗: ' + error.message);
+                    }
+                }
+            });
+        }
+
+        // 顯示通知
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notificationMessage');
+
+            messageElement.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

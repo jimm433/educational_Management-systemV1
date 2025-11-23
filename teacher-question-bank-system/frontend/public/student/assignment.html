@@ -1,0 +1,1022 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作業繳交 - 學生系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/student.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <style>
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: #f7fafc;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px 0;
+        }
+        
+        .upload-area:hover {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+        
+        .upload-area.drag-over {
+            border-color: #4299e1;
+            background: #bee3f8;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #4299e1;
+        }
+        
+        .file-list {
+            margin-top: 20px;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .file-icon {
+            font-size: 1.5rem;
+        }
+        
+        .file-details {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .file-size {
+            font-size: 0.85rem;
+            color: #718096;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .assignment-detail-section {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+        
+        .detail-content {
+            color: #2d3748;
+            line-height: 1.6;
+        }
+        
+        .deadline-warning {
+            background: #fef5e7;
+            border: 2px solid #f39c12;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .deadline-warning.expired {
+            background: #fadbd8;
+            border-color: #e74c3c;
+        }
+        
+        .deadline-warning .icon {
+            font-size: 1.5rem;
+        }
+        
+        .submit-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入作業列表中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">學生系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="course.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>我的課程</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試測驗</span>
+                    </a>
+                    <a href="assignment.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>作業繳交</span>
+                    </a>
+                    <a href="result.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>成績查詢</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">學習工具</div>
+                    <a href="profile.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>個人資料</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>作業繳交</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">學生</div>
+                            <div class="user-role">學生</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">作業繳交</h1>
+                    <p class="page-subtitle">查看和提交您的課程作業</p>
+                </div>
+
+                <!-- 工具欄 -->
+                <div class="toolbar">
+                    <div class="search-section">
+                        <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜尋作業標題或課程...">
+                    </div>
+                    <div class="toolbar-actions">
+                        <select class="filter-select" id="statusFilter">
+                            <option value="">所有狀態</option>
+                            <option value="pending">待繳交</option>
+                            <option value="submitted">已繳交</option>
+                            <option value="graded">已批改</option>
+                            <option value="overdue">已逾期</option>
+                        </select>
+                        <select class="filter-select" id="courseFilter">
+                            <option value="">所有課程</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="refreshAssignments()">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M3 10a7 7 0 0112-5M17 10a7 7 0 01-12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            重新整理
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5"/>
+                                    <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalAssignments">0</div>
+                        <div class="stat-label">總作業數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="pendingAssignments">0</div>
+                        <div class="stat-label">待繳交</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5"/>
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="submittedAssignments">0</div>
+                        <div class="stat-label">已繳交</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="averageScore">0%</div>
+                        <div class="stat-label">平均成績</div>
+                    </div>
+                </div>
+
+                <!-- 作業列表 -->
+                <div class="section-card">
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('all')">全部作業</button>
+                        <button class="tab-btn" onclick="switchTab('pending')">待繳交</button>
+                        <button class="tab-btn" onclick="switchTab('submitted')">已繳交</button>
+                        <button class="tab-btn" onclick="switchTab('graded')">已批改</button>
+                    </div>
+
+                    <div class="courses-grid" id="assignmentsGrid">
+                        <!-- 動態生成作業卡片 -->
+                    </div>
+
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <div class="empty-icon">📝</div>
+                        <h3>沒有找到作業</h3>
+                        <p>請加入課程或等待老師發布作業</p>
+                        <a href="course.html" class="btn btn-primary">瀏覽課程</a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 作業詳情模態框 -->
+    <div class="modal" id="assignmentModal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">作業詳情</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- 作業詳情 -->
+                <div class="assignment-detail-section">
+                    <div class="detail-label">作業說明</div>
+                    <div class="detail-content" id="assignmentDescription">載入中...</div>
+                </div>
+
+                <!-- 截止時間警告 -->
+                <div id="deadlineWarning"></div>
+
+                <!-- 上傳區域 -->
+                <div id="uploadSection" style="display: none;">
+                    <h3 style="margin-bottom: 15px;">繳交作業</h3>
+
+                    <!-- 文字答案 -->
+                    <div class="form-group" id="textAnswerSection">
+                        <label class="form-label">作業答案</label>
+                        <textarea class="form-input" id="textAnswer" rows="8" placeholder="請輸入您的作業答案..."></textarea>
+                    </div>
+
+                    <!-- 檔案上傳 -->
+                    <div class="form-group">
+                        <label class="form-label">上傳檔案（選填）</label>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">📎</div>
+                            <p><strong>點擊或拖曳檔案到這裡</strong></p>
+                            <p style="font-size: 0.9rem; color: #718096; margin-top: 8px;">
+                                支援 PDF、Word、圖片等格式，單檔最大 10MB
+                            </p>
+                        </div>
+                        <input type="file" id="fileInput" style="display: none;" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.zip">
+                    </div>
+
+                    <!-- 已選檔案列表 -->
+                    <div class="file-list" id="fileList"></div>
+                </div>
+
+                <!-- 已繳交的作業 -->
+                <div id="submittedSection" style="display: none;">
+                    <h3 style="margin-bottom: 15px;">已繳交內容</h3>
+                    <div class="assignment-detail-section">
+                        <div class="detail-label">繳交時間</div>
+                        <div class="detail-content" id="submittedTime">--</div>
+                    </div>
+                    <div class="assignment-detail-section">
+                        <div class="detail-label">作業答案</div>
+                        <div class="detail-content" id="submittedAnswer">--</div>
+                    </div>
+                    <div class="assignment-detail-section" id="submittedFilesSection" style="display: none;">
+                        <div class="detail-label">上傳的檔案</div>
+                        <div id="submittedFiles"></div>
+                    </div>
+                    <div class="assignment-detail-section" id="gradeSection" style="display: none;">
+                        <div class="detail-label">批改結果</div>
+                        <div class="detail-content">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #667eea; margin-bottom: 10px;">
+                                得分：<span id="assignmentScore">--</span>
+                            </div>
+                            <div id="assignmentFeedback" style="line-height: 1.6;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">關閉</button>
+                <button class="btn btn-primary" id="submitBtn" onclick="submitAssignment()" style="display: none;">提交作業</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/firebase-config.js"></script>
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script>
+        console.log('📝 學生作業頁面載入中...');
+
+        let currentUser = null;
+        let allAssignments = [];
+        let filteredAssignments = [];
+        let currentTab = 'all';
+        let myCourses = [];
+        let currentAssignment = null;
+        let selectedFiles = [];
+        let storage; // Storage 需要在頁面中宣告
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        async function initializePage() {
+            try {
+                // Firebase 已經在 firebase-config.js 中初始化
+                // 直接使用全域的 auth 和 db
+                storage = firebase.storage();
+
+                await checkAuth();
+                await loadMyCourses();
+                await loadAssignments();
+
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                bindEvents();
+                console.log('✅ 作業頁面初始化完成');
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+                alert('初始化失敗：' + error.message);
+            }
+        }
+
+        function checkAuth() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        resolve();
+                    } else {
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        async function loadMyCourses() {
+            try {
+                const enrollmentsSnapshot = await db.collection('courseEnrollments')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('status', '==', 'enrolled')
+                    .get();
+
+                myCourses = [];
+                for (const doc of enrollmentsSnapshot.docs) {
+                    const enrollment = doc.data();
+                    const courseDoc = await db.collection('courses').doc(enrollment.courseId).get();
+                    if (courseDoc.exists) {
+                        myCourses.push({
+                            id: courseDoc.id,
+                            ...courseDoc.data()
+                        });
+                    }
+                }
+
+                console.log(`✅ 載入了 ${myCourses.length} 個課程`);
+                populateCourseFilter();
+            } catch (error) {
+                console.error('❌ 載入課程失敗:', error);
+            }
+        }
+
+        function populateCourseFilter() {
+            const courseFilter = document.getElementById('courseFilter');
+            courseFilter.innerHTML = '<option value="">所有課程</option>';
+            myCourses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = course.name || course.courseName;
+                courseFilter.appendChild(option);
+            });
+        }
+
+        async function loadAssignments() {
+            try {
+                console.log('📝 載入作業...');
+                allAssignments = [];
+
+                if (myCourses.length === 0) {
+                    renderAssignments();
+                    updateStatistics();
+                    return;
+                }
+
+                for (const course of myCourses) {
+                    // 從 Google Forms 同步的作業（grading_events）
+                    const formsSnapshot = await db.collection('grading_events')
+                        .where('course_id', '==', course.id)
+                        .get();
+
+                    for (const doc of formsSnapshot.docs) {
+                        const assignmentData = {
+                            id: doc.id,
+                            ...doc.data(),
+                            source: 'forms'
+                        };
+
+                        // 檢查是否已繳交
+                        const submissionSnapshot = await db.collection('submissions')
+                            .where('studentId', '==', currentUser.uid)
+                            .where('form_id', '==', doc.id)
+                            .limit(1)
+                            .get();
+
+                        assignmentData.isSubmitted = !submissionSnapshot.empty;
+                        assignmentData.submission = submissionSnapshot.empty ? null : {
+                            id: submissionSnapshot.docs[0].id,
+                            ...submissionSnapshot.docs[0].data()
+                        };
+                        assignmentData.courseName = course.name || course.courseName;
+                        assignmentData.assignmentStatus = getAssignmentStatus(assignmentData);
+
+                        allAssignments.push(assignmentData);
+                    }
+
+                    // 從 assignments 集合的作業
+                    const assignmentsSnapshot = await db.collection('assignments')
+                        .where('courseId', '==', course.id)
+                        .get();
+
+                    for (const doc of assignmentsSnapshot.docs) {
+                        const assignmentData = {
+                            id: doc.id,
+                            ...doc.data(),
+                            source: 'assignment'
+                        };
+
+                        const submissionSnapshot = await db.collection('submissions')
+                            .where('studentId', '==', currentUser.uid)
+                            .where('assignmentId', '==', doc.id)
+                            .limit(1)
+                            .get();
+
+                        assignmentData.isSubmitted = !submissionSnapshot.empty;
+                        assignmentData.submission = submissionSnapshot.empty ? null : {
+                            id: submissionSnapshot.docs[0].id,
+                            ...submissionSnapshot.docs[0].data()
+                        };
+                        assignmentData.courseName = course.name || course.courseName;
+                        assignmentData.assignmentStatus = getAssignmentStatus(assignmentData);
+
+                        allAssignments.push(assignmentData);
+                    }
+                }
+
+                console.log(`✅ 載入了 ${allAssignments.length} 個作業`);
+                applyFilters();
+                updateStatistics();
+            } catch (error) {
+                console.error('❌ 載入作業失敗:', error);
+                renderAssignments();
+                updateStatistics();
+            }
+        }
+
+        function getAssignmentStatus(assignment) {
+            if (assignment.submission && assignment.submission.status === 'graded') {
+                return 'graded';
+            }
+            if (assignment.isSubmitted) {
+                return 'submitted';
+            }
+
+            const now = new Date();
+            if (assignment.dueDate) {
+                const dueDate = assignment.dueDate.toDate ? assignment.dueDate.toDate() : new Date(assignment.dueDate);
+                if (now > dueDate) {
+                    return 'overdue';
+                }
+            }
+
+            return 'pending';
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const courseFilter = document.getElementById('courseFilter').value;
+
+            filteredAssignments = allAssignments.filter(assignment => {
+                const title = assignment.title || assignment.form_title || assignment.name || '';
+                const matchesSearch = !searchTerm ||
+                    title.toLowerCase().includes(searchTerm) ||
+                    (assignment.courseName || '').toLowerCase().includes(searchTerm);
+
+                const matchesStatus = !statusFilter || assignment.assignmentStatus === statusFilter;
+                const matchesCourse = !courseFilter || assignment.courseId === courseFilter || assignment.course_id === courseFilter;
+                const matchesTab = currentTab === 'all' || assignment.assignmentStatus === currentTab;
+
+                return matchesSearch && matchesStatus && matchesCourse && matchesTab;
+            });
+
+            renderAssignments();
+        }
+
+        function renderAssignments() {
+            const container = document.getElementById('assignmentsGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredAssignments.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            container.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            let html = '';
+            filteredAssignments.forEach(assignment => {
+                html += createAssignmentCard(assignment);
+            });
+            container.innerHTML = html;
+        }
+
+        function createAssignmentCard(assignment) {
+            const statusMap = {
+                'pending': {
+                    text: '待繳交',
+                    class: 'pending'
+                },
+                'submitted': {
+                    text: '已繳交',
+                    class: 'active'
+                },
+                'graded': {
+                    text: '已批改',
+                    class: 'completed'
+                },
+                'overdue': {
+                    text: '已逾期',
+                    class: 'inactive'
+                }
+            };
+            const status = statusMap[assignment.assignmentStatus] || statusMap.pending;
+
+            const title = assignment.title || assignment.form_title || assignment.name || '未命名作業';
+            const dueDate = assignment.dueDate ? (assignment.dueDate.toDate ? assignment.dueDate.toDate() : new Date(assignment.dueDate)) : null;
+
+            let actionBtn = '';
+            if (assignment.assignmentStatus === 'pending' || assignment.assignmentStatus === 'overdue') {
+                actionBtn = `<button class="btn btn-sm btn-primary" onclick='openAssignmentModal(${JSON.stringify(assignment).replace(/'/g, "\\'")} )'>繳交作業</button>`;
+            } else if (assignment.assignmentStatus === 'submitted') {
+                actionBtn = `<button class="btn btn-sm btn-secondary" onclick='viewSubmission(${JSON.stringify(assignment).replace(/'/g, "\\'")} )'>查看繳交內容</button>`;
+            } else if (assignment.assignmentStatus === 'graded') {
+                actionBtn = `<button class="btn btn-sm btn-primary" onclick="viewResult('${assignment.submission.id}')">查看成績</button>`;
+            }
+
+            return `
+                <div class="course-card">
+                    <div class="course-card-header">
+                        <h3 class="course-card-title">${title}</h3>
+                        <span class="badge badge-${status.class}">${status.text}</span>
+                    </div>
+                    <p class="course-card-desc">${assignment.description || '無描述'}</p>
+                    <div class="course-meta">
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            ${assignment.courseName || '未知課程'}
+                        </div>
+                        ${dueDate ? `
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5"/>
+                                <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            截止：${dueDate.toLocaleDateString('zh-TW')}
+                        </div>
+                        ` : ''}
+                    </div>
+                    ${assignment.submission && assignment.submission.final_score !== undefined ? `
+                        <div class="progress-section">
+                            <div class="progress-label">
+                                <span>得分</span>
+                                <span>${assignment.submission.final_score || 0} / ${assignment.submission.total_points || 100}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${Math.round((assignment.submission.final_score / assignment.submission.total_points) * 100)}%"></div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div class="course-card-footer">
+                        ${actionBtn}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStatistics() {
+            document.getElementById('totalAssignments').textContent = allAssignments.length;
+            document.getElementById('pendingAssignments').textContent = allAssignments.filter(a => a.assignmentStatus === 'pending').length;
+            document.getElementById('submittedAssignments').textContent = allAssignments.filter(a => a.assignmentStatus === 'submitted' || a.assignmentStatus === 'graded').length;
+
+            const gradedAssignments = allAssignments.filter(a => a.assignmentStatus === 'graded' && a.submission);
+            if (gradedAssignments.length > 0) {
+                const avgScore = Math.round(
+                    gradedAssignments.reduce((sum, a) => sum + ((a.submission.final_score / a.submission.total_points) * 100), 0) / gradedAssignments.length
+                );
+                document.getElementById('averageScore').textContent = avgScore + '%';
+            } else {
+                document.getElementById('averageScore').textContent = '0%';
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            applyFilters();
+        }
+
+        function openAssignmentModal(assignment) {
+            currentAssignment = assignment;
+            selectedFiles = [];
+            
+            const title = assignment.title || assignment.form_title || assignment.name || '未命名作業';
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('assignmentDescription').textContent = assignment.description || '無作業說明';
+
+            // 顯示截止時間警告
+            const deadlineWarning = document.getElementById('deadlineWarning');
+            if (assignment.dueDate) {
+                const dueDate = assignment.dueDate.toDate ? assignment.dueDate.toDate() : new Date(assignment.dueDate);
+                const now = new Date();
+                const isOverdue = now > dueDate;
+                
+                deadlineWarning.innerHTML = `
+                    <div class="deadline-warning ${isOverdue ? 'expired' : ''}">
+                        <span class="icon">${isOverdue ? '⚠️' : '⏰'}</span>
+                        <div>
+                            <strong>${isOverdue ? '已逾期' : '截止時間'}</strong><br>
+                            ${dueDate.toLocaleString('zh-TW')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                deadlineWarning.innerHTML = '';
+            }
+
+            document.getElementById('uploadSection').style.display = 'block';
+            document.getElementById('submittedSection').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'block';
+            document.getElementById('textAnswer').value = '';
+            document.getElementById('fileList').innerHTML = '';
+
+            document.getElementById('assignmentModal').style.display = 'flex';
+        }
+
+        function viewSubmission(assignment) {
+            currentAssignment = assignment;
+            
+            const title = assignment.title || assignment.form_title || assignment.name || '未命名作業';
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('assignmentDescription').textContent = assignment.description || '無作業說明';
+
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('submittedSection').style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'none';
+
+            const submission = assignment.submission;
+            document.getElementById('submittedTime').textContent = formatDate(submission.submittedAt || submission.created_at);
+            
+            // 顯示答案
+            if (submission.answers && Array.isArray(submission.answers)) {
+                let answerHtml = '';
+                submission.answers.forEach((answer, index) => {
+                    answerHtml += `<div style="margin-bottom: 15px;">
+                        <strong>第 ${index + 1} 題：</strong><br>
+                        ${answer.answer || '未作答'}
+                    </div>`;
+                });
+                document.getElementById('submittedAnswer').innerHTML = answerHtml;
+            } else {
+                document.getElementById('submittedAnswer').textContent = submission.content || submission.answer || '無答案內容';
+            }
+
+            // 顯示批改結果
+            if (assignment.assignmentStatus === 'graded') {
+                document.getElementById('gradeSection').style.display = 'block';
+                document.getElementById('assignmentScore').textContent = `${submission.final_score || 0} / ${submission.total_points || 100}`;
+                document.getElementById('assignmentFeedback').textContent = submission.final_feedback || submission.feedback || '無評語';
+            } else {
+                document.getElementById('gradeSection').style.display = 'none';
+            }
+
+            document.getElementById('assignmentModal').style.display = 'flex';
+        }
+
+        async function submitAssignment() {
+            const textAnswer = document.getElementById('textAnswer').value.trim();
+            
+            if (!textAnswer && selectedFiles.length === 0) {
+                alert('請輸入答案或上傳檔案');
+                return;
+            }
+
+            if (!confirm('確定要提交作業嗎？提交後無法修改。')) {
+                return;
+            }
+
+            try {
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('submitBtn').textContent = '提交中...';
+
+                // 建立提交記錄
+                const submissionData = {
+                    studentId: currentUser.uid,
+                    studentName: currentUser.displayName || currentUser.email,
+                    studentEmail: currentUser.email,
+                    content: textAnswer,
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'submitted',
+                    source: currentAssignment.source || 'assignment'
+                };
+
+                if (currentAssignment.source === 'forms') {
+                    submissionData.form_id = currentAssignment.id;
+                    submissionData.form_title = currentAssignment.form_title;
+                } else {
+                    submissionData.assignmentId = currentAssignment.id;
+                    submissionData.assignmentTitle = currentAssignment.title;
+                }
+
+                if (currentAssignment.courseId || currentAssignment.course_id) {
+                    submissionData.courseId = currentAssignment.courseId || currentAssignment.course_id;
+                }
+
+                // 如果有檔案，上傳到 Storage
+                if (selectedFiles.length > 0) {
+                    submissionData.files = [];
+                    for (const file of selectedFiles) {
+                        const fileName = `${currentUser.uid}/${Date.now()}_${file.name}`;
+                        const storageRef = storage.ref().child(`submissions/${fileName}`);
+                        await storageRef.put(file);
+                        const downloadURL = await storageRef.getDownloadURL();
+                        submissionData.files.push({
+                            name: file.name,
+                            url: downloadURL,
+                            size: file.size
+                        });
+                    }
+                }
+
+                await db.collection('submissions').add(submissionData);
+
+                alert('✅ 作業提交成功！');
+                closeModal();
+                await loadAssignments();
+
+            } catch (error) {
+                console.error('❌ 提交失敗:', error);
+                alert('提交失敗：' + error.message);
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('submitBtn').textContent = '提交作業';
+            }
+        }
+
+        function viewResult(submissionId) {
+            window.location.href = `result.html?submissionId=${submissionId}`;
+        }
+
+        function closeModal() {
+            document.getElementById('assignmentModal').style.display = 'none';
+            currentAssignment = null;
+            selectedFiles = [];
+        }
+
+        function refreshAssignments() {
+            window.location.reload();
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return '--';
+            try {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleString('zh-TW');
+            } catch (e) {
+                return '--';
+            }
+        }
+
+        function bindEvents() {
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = '../index.html';
+                }).catch(error => {
+                    console.error('登出失敗:', error);
+                });
+            });
+
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('courseFilter').addEventListener('change', applyFilters);
+
+            // 檔案上傳事件
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            // 模態框點擊外部關閉
+            document.getElementById('assignmentModal').addEventListener('click', (e) => {
+                if (e.target.id === 'assignmentModal') {
+                    closeModal();
+                }
+            });
+        }
+
+        function handleFiles(files) {
+            for (const file of files) {
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`檔案 ${file.name} 超過 10MB 限制`);
+                    continue;
+                }
+                selectedFiles.push(file);
+            }
+            renderFileList();
+        }
+
+        function renderFileList() {
+            const container = document.getElementById('fileList');
+            if (selectedFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            selectedFiles.forEach((file, index) => {
+                html += `
+                    <div class="file-item">
+                        <div class="file-info">
+                            <span class="file-icon">📎</span>
+                            <div class="file-details">
+                                <div class="file-name">${file.name}</div>
+                                <div class="file-size">${(file.size / 1024).toFixed(2)} KB</div>
+                            </div>
+                        </div>
+                        <div class="file-actions">
+                            <button class="btn btn-sm btn-secondary" onclick="removeFile(${index})">移除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        }
+    </script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

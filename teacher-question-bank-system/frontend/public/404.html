@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>頁面未找到 - 404</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .error-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .error-code {
+            font-size: 8em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+        
+        .error-title {
+            font-size: 2em;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        
+        .error-message {
+            font-size: 1.1em;
+            color: #4a5568;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .error-details {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 40px;
+            text-align: left;
+        }
+        
+        .error-details h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .error-details p {
+            color: #4a5568;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+        
+        .user-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .user-info p {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .error-container {
+                padding: 40px 20px;
+            }
+            .error-code {
+                font-size: 6em;
+            }
+            .error-title {
+                font-size: 1.5em;
+            }
+            .btn {
+                display: block;
+                width: 100%;
+                margin: 10px 0;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-container">
+        <div class="error-code">404</div>
+        <h1 class="error-title">頁面未找到</h1>
+        <p class="error-message">
+            抱歉，您要訪問的頁面不存在或已被移除。<br> 請檢查網址是否正確，或使用下方的按鈕返回主頁。
+        </p>
+
+        <div class="error-details">
+            <h4>可能的解決方案：</h4>
+            <p>• 檢查網址拼寫是否正確</p>
+            <p>• 使用瀏覽器的返回按鈕</p>
+            <p>• 返回主頁重新導航</p>
+            <p>• 清除瀏覽器快取後重試</p>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="goHome()">
+                🏠 返回主頁
+            </button>
+            <button class="btn btn-secondary" onclick="goBack()">
+                ← 返回上頁
+            </button>
+        </div>
+
+        <div class="user-info">
+            <p id="userInfo">載入用戶資訊...</p>
+            <button class="logout-btn" id="logoutBtn">登出</button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // 頁面載入
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📚 404頁面已載入');
+            checkAuthState();
+            bindEventListeners();
+        });
+
+        // 檢查身份驗證狀態
+        function checkAuthState() {
+            auth.onAuthStateChanged(function(user) {
+                if (user) {
+                    document.getElementById('userInfo').textContent =
+                        `已登入: ${user.displayName || user.email}`;
+                } else {
+                    document.getElementById('userInfo').textContent = '未登入';
+                }
+            });
+        }
+
+        // 綁定事件監聽器
+        function bindEventListeners() {
+            // 登出按鈕
+            document.getElementById('logoutBtn').addEventListener('click', async function() {
+                if (confirm('確定要登出嗎？')) {
+                    try {
+                        await auth.signOut();
+                        console.log('✅ 登出成功');
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        console.error('❌ 登出失敗:', error);
+                        alert('登出失敗: ' + error.message);
+                    }
+                }
+            });
+        }
+
+        // 返回主頁
+        function goHome() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // 返回上頁
+        function goBack() {
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // 顯示通知
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, #48bb78, #38a169)';
+            } else if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, #f56565, #e53e3e)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // 添加動畫樣式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>

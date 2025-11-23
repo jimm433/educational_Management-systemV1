@@ -1,0 +1,67 @@
+# 依賴套件
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# 環境變數檔案
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+key.env
+*.env
+
+# Firebase
+.firebase/
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 作業系統
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 日誌檔案
+logs/
+*.log
+*.txt.log
+
+# 快取
+.cache/
+.parcel-cache/
+
+# 覆蓋率報告
+coverage/
+
+# 個人配置檔案
+*.local
+
+# 上傳的檔案（可選，如果不想上傳用戶上傳的檔案）
+# checkerV2/uploads/
+# checkerV2/results/
+
+# 臨時檔案
+*.tmp
+*.temp
+*.bak
+*.backup
+

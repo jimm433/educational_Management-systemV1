@@ -1,0 +1,117 @@
+{
+    "name": "teacher-question-bank-functions",
+    "version": "1.0.0",
+    "description": "教師題庫管理系統 Firebase Cloud Functions",
+    "main": "index.js",
+    "engines": {
+        "node": "18"
+    },
+    "scripts": {
+        "serve": "firebase emulators:start --only functions",
+        "shell": "firebase functions:shell",
+        "start": "npm run shell",
+        "deploy": "firebase deploy --only functions",
+        "deploy:prod": "firebase deploy --only functions --project production",
+        "deploy:dev": "firebase deploy --only functions --project development",
+        "logs": "firebase functions:log",
+        "logs:tail": "firebase functions:log --follow",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "build": "npm run lint && npm test",
+        "clean": "if exist node_modules rmdir /s /q node_modules && npm install",
+        "backup": "node scripts/backup-firestore.js",
+        "restore": "node scripts/restore-firestore.js",
+        "seed": "node scripts/seed-database.js"
+    },
+    "dependencies": {
+        "bcrypt": "^5.1.1",
+        "cors": "^2.8.5",
+        "csv-parser": "^3.0.0",
+        "express": "^4.18.2",
+        "firebase-admin": "^12.0.0",
+        "firebase-functions": "^4.5.0",
+        "google-auth-library": "^9.4.0",
+        "googleapis": "^128.0.0",
+        "helmet": "^7.1.0",
+        "joi": "^17.11.0",
+        "jsonwebtoken": "^9.0.2",
+        "lodash": "^4.17.21",
+        "dayjs": "^1.11.10",
+        "multer": "^1.4.5-lts.1",
+        "nodemailer": "^6.9.7",
+        "pdf-lib": "^1.17.1",
+        "sharp": "^0.32.6",
+        "uuid": "^9.0.1",
+        "xlsx": "^0.20.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.8",
+        "eslint": "^8.55.0",
+        "eslint-config-google": "^0.14.0",
+        "firebase-functions-test": "^3.1.0",
+        "jest": "^29.7.0",
+        "nodemon": "^3.0.2",
+        "prettier": "^3.1.0",
+        "supertest": "^6.3.3"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "coverageDirectory": "coverage",
+        "collectCoverageFrom": [
+            "src/**/*.js",
+            "!src/**/*.test.js",
+            "!src/config/*.js"
+        ],
+        "testMatch": [
+            "**/__tests__/**/*.js",
+            "**/?(*.)+(spec|test).js"
+        ]
+    },
+    "eslintConfig": {
+        "extends": [
+            "eslint:recommended",
+            "google"
+        ],
+        "parserOptions": {
+            "ecmaVersion": 2018
+        },
+        "env": {
+            "es6": true,
+            "node": true,
+            "jest": true
+        },
+        "rules": {
+            "no-restricted-globals": [
+                "error",
+                "name",
+                "length"
+            ],
+            "prefer-arrow-callback": "error",
+            "quotes": [
+                "error",
+                "single"
+            ],
+            "max-len": [
+                "error",
+                {
+                    "code": 120
+                }
+            ]
+        }
+    },
+    "keywords": [
+        "firebase",
+        "functions",
+        "education",
+        "quiz",
+        "teacher",
+        "student",
+        "exam"
+    ],
+    "author": "Your Name <your.email@example.com>",
+    "license": "MIT",
+    "private": true
+}

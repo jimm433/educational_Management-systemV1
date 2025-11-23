@@ -1,0 +1,34 @@
+/* 標籤篩選彈窗樣式 */
+
+.tag-item {
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.tag-item:hover {
+    background-color: var(--bg-light);
+    border-color: var(--primary-color);
+}
+
+.tag-item.selected {
+    background-color: #e3f2fd;
+    border-color: var(--primary-color);
+}
+
+.tag-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.tag-check {
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 18px;
+}

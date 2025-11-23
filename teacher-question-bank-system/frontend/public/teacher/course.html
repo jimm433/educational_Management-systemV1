@@ -1,0 +1,786 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>課程管理 - 教育管理系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入課程中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="5" width="14" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M3 8h14M7 5v-2M13 5v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">教育管理系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="../dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="question.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>題庫管理</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試管理</span>
+                    </a>
+                    <a href="course.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>課程管理</span>
+                    </a>
+                    <a href="grading.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>作業批改</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">分析與設定</div>
+                    <a href="analytic.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 14v-4M10 14V8M16 14v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>數據分析</span>
+                    </a>
+                    <a href="ai-assistant.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 2L3 7v6l7 5 7-5V7l-7-5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 12V8M8 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>AI 學習助手</span>
+                    </a>
+                    <a href="setting.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 2v2M10 16v2M18 10h-2M6 10H4M15.66 4.34l-1.41 1.41M5.75 14.25l-1.41 1.41M15.66 15.66l-1.41-1.41M5.75 5.75L4.34 4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>系統設定</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="../dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>課程管理</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">教師</div>
+                            <div class="user-role">教師</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">課程管理</h1>
+                    <p class="page-subtitle">建立、管理您的教學課程</p>
+                </div>
+
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M3 11l7 4 7-4" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalCourses">0</div>
+                        <div class="stat-label">課程總數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="activeCourses">0</div>
+                        <div class="stat-label">進行中</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalStudents">0</div>
+                        <div class="stat-label">總學生數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="weeklyNew">0</div>
+                        <div class="stat-label">本週新增</div>
+                    </div>
+                </div>
+
+                <!-- 工具欄 -->
+                <div class="toolbar">
+                    <!-- 搜尋欄 -->
+                    <div class="toolbar-section">
+                        <div class="search-container">
+                            <div class="search-input-group">
+                                <svg class="search-icon" viewBox="0 0 20 20" fill="none">
+                                    <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <input type="text" id="searchInput" class="search-input" placeholder="搜尋課程名稱、代碼...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 篩選器和操作按鈕 -->
+                    <div class="toolbar-section">
+                        <div class="filter-group">
+                            <select id="statusFilter" class="filter-select" onchange="applyFilters()">
+                                <option value="">所有狀態</option>
+                                <option value="active">進行中</option>
+                                <option value="draft">草稿</option>
+                                <option value="archived">已結束</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="openCreateCourseModal()">
+                            <svg viewBox="0 0 20 20" fill="none" style="width: 16px; height: 16px;">
+                                <path d="M10 5v10M5 10h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            新增課程
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 課程列表 -->
+                <div class="content-card">
+                    <div class="courses-list" id="coursesList">
+                        <!-- 課程項目將動態載入 -->
+                    </div>
+
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 80 80" fill="none" style="width: 80px; height: 80px; stroke: #cbd5e0;">
+                                <path d="M40 10L15 25l25 15 25-15-25-15z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M15 35l25 15 25-15M15 50l25 15 25-15" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <h3>尚未建立任何課程</h3>
+                        <p>點擊「新增課程」按鈕來建立您的第一個課程</p>
+                        <button class="btn btn-primary" onclick="openCreateCourseModal()">
+                            新增課程
+                        </button>
+                    </div>
+
+                    <!-- 分頁 -->
+                    <div class="pagination" id="pagination" style="display: none;">
+                        <button class="pagination-btn" id="prevPage">‹ 上一頁</button>
+                        <div class="page-numbers" id="pageNumbers"></div>
+                        <button class="pagination-btn" id="nextPage">下一頁 ›</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 新增/編輯課程模態框 -->
+    <div class="modal" id="courseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">新增課程</h2>
+                <button class="modal-close" onclick="closeCourseModal()">
+                    <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="courseForm">
+                    <div class="form-group">
+                        <label class="form-label required">課程名稱</label>
+                        <input type="text" class="form-input" id="courseName" required placeholder="例如：程式設計基礎">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">課程代碼</label>
+                        <input type="text" class="form-input" id="courseCode" required placeholder="例如：CS101" style="text-transform: uppercase;" onkeyup="this.value = this.value.toUpperCase()">
+                        <small style="color: #6b7280; font-size: 12px;">課程代碼會自動轉換為大寫</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">課程描述</label>
+                        <textarea class="form-textarea" id="courseDescription" rows="4" placeholder="請輸入課程簡介和說明..."></textarea>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">學分數</label>
+                            <input type="number" class="form-input" id="courseCredits" min="0" value="3">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">狀態</label>
+                            <select class="form-select" id="courseStatus" required>
+                                <option value="draft">草稿</option>
+                                <option value="active">進行中</option>
+                                <option value="archived">已結束</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">開始日期</label>
+                            <input type="date" class="form-input" id="courseStartDate">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">結束日期</label>
+                            <input type="date" class="form-input" id="courseEndDate">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">課程封面圖片 URL</label>
+                        <input type="url" class="form-input" id="courseCoverImage" placeholder="https://example.com/image.jpg">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCourseModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveCourse()">儲存課程</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
+
+        // 初始化 Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // 全域變數
+        let currentUser = null;
+        let allCourses = [];
+        let filteredCourses = [];
+        let currentPage = 1;
+        const coursesPerPage = 9;
+        let editingCourseId = null;
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📚 課程管理頁面載入中...');
+            initializeCoursePage();
+        });
+
+        // 初始化頁面
+        async function initializeCoursePage() {
+            try {
+                // 檢查登入狀態
+                await checkAuthState();
+
+                // 載入課程
+                await loadCourses();
+
+                // 綁定事件
+                bindEventListeners();
+
+                // 隱藏載入畫面
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                console.log('✅ 課程頁面初始化完成');
+
+            } catch (error) {
+                console.error('❌ 課程頁面初始化失敗:', error);
+                alert('初始化失敗：' + error.message);
+            }
+        }
+
+        // 檢查身份驗證狀態
+        function checkAuthState() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(function(user) {
+                    if (user) {
+                        console.log('✅ 使用者已登入:', user.email);
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        resolve(user);
+                    } else {
+                        console.log('❌ 使用者未登入');
+                        window.location.href = '../dashboard.html';
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        // 載入課程
+        async function loadCourses() {
+            try {
+                console.log('📚 載入課程資料...');
+
+                const snapshot = await db.collection('courses')
+                    .where('createdBy', '==', currentUser.uid)
+                    .get();
+
+                allCourses = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // 排序
+                allCourses.sort((a, b) => {
+                    const timeA = (a.createdAt && a.createdAt.toDate) ? a.createdAt.toDate() : new Date(0);
+                    const timeB = (b.createdAt && b.createdAt.toDate) ? b.createdAt.toDate() : new Date(0);
+                    return timeB - timeA;
+                });
+
+                filteredCourses = [...allCourses];
+                renderCourses();
+                updateStatistics();
+
+                console.log(`✅ 成功載入 ${allCourses.length} 個課程`);
+
+            } catch (error) {
+                console.error('❌ 載入課程失敗:', error);
+                document.getElementById('coursesList').innerHTML = `
+                    <div class="empty-state">
+                        <h3>載入失敗</h3>
+                        <p style="color: var(--error-color);">${error.message}</p>
+                        <button class="btn btn-primary" onclick="location.reload()">重新載入</button>
+                    </div>
+                `;
+            }
+        }
+
+        // 渲染課程列表
+        function renderCourses() {
+            const container = document.getElementById('coursesList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredCourses.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            // 分頁
+            const startIndex = (currentPage - 1) * coursesPerPage;
+            const endIndex = startIndex + coursesPerPage;
+            const coursesToShow = filteredCourses.slice(startIndex, endIndex);
+
+            container.innerHTML = coursesToShow.map(course => {
+                const statusBadge = getStatusBadge(course.status);
+                const studentCount = course.studentCount || 0;
+
+                return `
+                    <div class="course-card" data-id="${course.id}">
+                        <div class="course-header">
+                            <div class="course-info">
+                                <h3 class="course-name">${course.name || '未命名課程'}</h3>
+                                <div class="course-code">${course.code || '-'}</div>
+                            </div>
+                            <span class="status-badge status-${course.status}">${statusBadge}</span>
+                        </div>
+                        
+                        <div class="course-description">
+                            ${course.description || '暫無課程描述'}
+                        </div>
+                        
+                        <div class="course-meta">
+                            <span class="meta-item">
+                                <svg viewBox="0 0 20 20" fill="none" style="width: 16px; height: 16px;">
+                                    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                                ${studentCount} 位學生
+                            </span>
+                            <span class="meta-item">
+                                <svg viewBox="0 0 20 20" fill="none" style="width: 16px; height: 16px;">
+                                    <rect x="4" y="5" width="12" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                                ${course.credits || 0} 學分
+                            </span>
+                        </div>
+                        
+                        <div class="course-actions">
+                            <button class="action-btn edit" onclick="editCourse('${course.id}')">編輯</button>
+                            <button class="action-btn delete" onclick="deleteCourse('${course.id}')">刪除</button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            renderPagination();
+        }
+
+        // 渲染分頁
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
+            const pagination = document.getElementById('pagination');
+
+            if (totalPages <= 1) {
+                pagination.style.display = 'none';
+                return;
+            }
+
+            pagination.style.display = 'flex';
+
+            const pageNumbers = document.getElementById('pageNumbers');
+            let pagesHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                pagesHTML += `
+                    <button class="page-number ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            pageNumbers.innerHTML = pagesHTML;
+
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages;
+        }
+
+        // 更新統計資料
+        function updateStatistics() {
+            const total = allCourses.length;
+            const active = allCourses.filter(c => c.status === 'active').length;
+            const totalStudents = allCourses.reduce((sum, c) => sum + (c.studentCount || 0), 0);
+
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            const weeklyNew = allCourses.filter(c => {
+                const createdAt = c.createdAt && c.createdAt.toDate ? c.createdAt.toDate() : null;
+                return createdAt && createdAt > weekAgo;
+            }).length;
+
+            document.getElementById('totalCourses').textContent = total;
+            document.getElementById('activeCourses').textContent = active;
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('weeklyNew').textContent = weeklyNew;
+        }
+
+        // 應用篩選
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            filteredCourses = allCourses.filter(course => {
+                if (searchTerm &&
+                    !course.name.toLowerCase().includes(searchTerm) &&
+                    !(course.code && course.code.toLowerCase().includes(searchTerm))) {
+                    return false;
+                }
+
+                if (statusFilter && course.status !== statusFilter) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            currentPage = 1;
+            renderCourses();
+        }
+
+        // 打開新增課程模態框
+        function openCreateCourseModal() {
+            editingCourseId = null;
+            document.getElementById('modalTitle').textContent = '新增課程';
+            document.getElementById('courseForm').reset();
+            document.getElementById('courseStatus').value = 'draft';
+            document.getElementById('courseCredits').value = 3;
+            document.getElementById('courseModal').style.display = 'flex';
+        }
+
+        // 編輯課程
+        async function editCourse(courseId) {
+            const course = allCourses.find(c => c.id === courseId);
+            if (!course) return;
+
+            editingCourseId = courseId;
+            document.getElementById('modalTitle').textContent = '編輯課程';
+
+            document.getElementById('courseName').value = course.name || '';
+            document.getElementById('courseCode').value = course.code || '';
+            document.getElementById('courseDescription').value = course.description || '';
+            document.getElementById('courseCredits').value = course.credits || 3;
+            document.getElementById('courseStatus').value = course.status || 'draft';
+
+            if (course.startDate) {
+                const startDate = course.startDate.toDate ? course.startDate.toDate() : new Date(course.startDate);
+                document.getElementById('courseStartDate').value = startDate.toISOString().split('T')[0];
+            }
+
+            if (course.endDate) {
+                const endDate = course.endDate.toDate ? course.endDate.toDate() : new Date(course.endDate);
+                document.getElementById('courseEndDate').value = endDate.toISOString().split('T')[0];
+            }
+
+            document.getElementById('courseCoverImage').value = course.coverImage || '';
+
+            document.getElementById('courseModal').style.display = 'flex';
+        }
+
+        // 關閉課程模態框
+        function closeCourseModal() {
+            document.getElementById('courseModal').style.display = 'none';
+            editingCourseId = null;
+        }
+
+        // 儲存課程
+        // 生成隨機課程代碼
+        function generateCourseCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 排除易混淆的字符
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        async function saveCourse() {
+            const form = document.getElementById('courseForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            try {
+                let courseCode = document.getElementById('courseCode').value.trim().toUpperCase();
+
+                // 如果是新建課程且沒有填寫課程代碼，自動生成一個
+                if (!editingCourseId && !courseCode) {
+                    courseCode = generateCourseCode();
+                    console.log('🎲 自動生成課程代碼:', courseCode);
+                }
+
+                const courseData = {
+                    name: document.getElementById('courseName').value.trim(),
+                    code: courseCode.toUpperCase(), // 確保始終為大寫
+                    description: document.getElementById('courseDescription').value.trim(),
+                    credits: parseInt(document.getElementById('courseCredits').value) || 0,
+                    status: document.getElementById('courseStatus').value,
+                    coverImage: document.getElementById('courseCoverImage').value.trim() || '',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                const startDate = document.getElementById('courseStartDate').value;
+                const endDate = document.getElementById('courseEndDate').value;
+
+                if (startDate) {
+                    courseData.startDate = firebase.firestore.Timestamp.fromDate(new Date(startDate));
+                }
+
+                if (endDate) {
+                    courseData.endDate = firebase.firestore.Timestamp.fromDate(new Date(endDate));
+                }
+
+                if (editingCourseId) {
+                    await db.collection('courses').doc(editingCourseId).update(courseData);
+                    console.log('✅ 課程已更新');
+                    alert('課程更新成功！');
+                } else {
+                    courseData.createdBy = currentUser.uid;
+                    courseData.teacherId = currentUser.uid;
+                    courseData.teacherName = currentUser.displayName || currentUser.email;
+                    courseData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                    courseData.studentCount = 0;
+                    courseData.enrolledStudents = []; // 已選課學生 UID 列表
+
+                    await db.collection('courses').add(courseData);
+                    console.log('✅ 課程已新增，課程代碼:', courseCode);
+                    alert(`課程新增成功！\n\n課程代碼：${courseCode}\n\n請將此代碼分享給學生，讓他們加入課程。`);
+                }
+
+                closeCourseModal();
+                await loadCourses();
+
+            } catch (error) {
+                console.error('❌ 儲存課程失敗:', error);
+                alert('儲存失敗：' + error.message);
+            }
+        }
+
+        // 刪除課程
+        async function deleteCourse(courseId) {
+            const course = allCourses.find(c => c.id === courseId);
+            if (!course) return;
+
+            if (!confirm(`確定要刪除課程「${course.name}」嗎？此操作無法復原。`)) {
+                return;
+            }
+
+            try {
+                await db.collection('courses').doc(courseId).delete();
+                console.log('✅ 成功刪除課程');
+                alert('課程已刪除');
+                await loadCourses();
+            } catch (error) {
+                console.error('❌ 刪除課程失敗:', error);
+                alert('刪除失敗：' + error.message);
+            }
+        }
+
+        // 獲取狀態徽章文字
+        function getStatusBadge(status) {
+            const statusMap = {
+                'active': '進行中',
+                'draft': '草稿',
+                'archived': '已結束'
+            };
+            return statusMap[status] || status;
+        }
+
+        // 切換頁面
+        function goToPage(page) {
+            currentPage = page;
+            renderCourses();
+        }
+
+        // 綁定事件監聽器
+        function bindEventListeners() {
+            // 登出按鈕
+            document.getElementById('logoutBtn').addEventListener('click', async function() {
+                try {
+                    await auth.signOut();
+                    window.location.href = '../dashboard.html';
+                } catch (error) {
+                    console.error('登出失敗:', error);
+                }
+            });
+
+            // 搜尋
+            document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
+
+            // 分頁按鈕
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderCourses();
+                }
+            });
+
+            document.getElementById('nextPage').addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderCourses();
+                }
+            });
+
+            // 模態框點擊外部關閉
+            document.getElementById('courseModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCourseModal();
+                }
+            });
+        }
+
+        // 防抖函數
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,580 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成績查詢 - 學生系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/student.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入成績中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">學生系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="course.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>我的課程</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試測驗</span>
+                    </a>
+                    <a href="assignment.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>作業繳交</span>
+                    </a>
+                    <a href="result.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>成績查詢</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">學習工具</div>
+                    <a href="profile.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>個人資料</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>成績查詢</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">學生</div>
+                            <div class="user-role">學生</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">成績查詢</h1>
+                    <p class="page-subtitle">查看您的考試和作業成績</p>
+                </div>
+
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalSubmissions">0</div>
+                        <div class="stat-label">總提交數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="gradedCount">0</div>
+                        <div class="stat-label">已批改</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="averageScore">--</div>
+                        <div class="stat-label">平均分數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="highestScore">--</div>
+                        <div class="stat-label">最高分數</div>
+                    </div>
+                </div>
+
+                <!-- 篩選工具列 -->
+                <div class="toolbar">
+                    <div class="search-section">
+                        <input type="text" id="searchInput" class="search-input" placeholder="搜尋考試或作業名稱...">
+                        <select id="statusFilter" class="filter-select">
+                            <option value="all">全部狀態</option>
+                            <option value="graded">已批改</option>
+                            <option value="pending">批改中</option>
+                        </select>
+                        <select id="typeFilter" class="filter-select">
+                            <option value="all">全部類型</option>
+                            <option value="exam">考試</option>
+                            <option value="assignment">作業</option>
+                            <option value="form">表單</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 成績列表 -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>成績列表</h2>
+                    </div>
+                    <div id="resultsContainer" class="items-list">
+                        <!-- 載入中 -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/firebase-config.js"></script>
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script>
+        console.log('📊 成績查詢頁面載入中...');
+
+        let currentUser = null;
+        let allSubmissions = [];
+        let filteredSubmissions = [];
+
+        // 初始化頁面
+        auth.onAuthStateChanged(async(user) => {
+            if (user) {
+                currentUser = user;
+                console.log('✅ 使用者已登入:', user.email);
+                document.getElementById('userName').textContent = user.displayName || user.email.split('@')[0];
+
+                await loadAllResults();
+                bindEvents();
+
+                // 隱藏載入畫面
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'flex';
+
+                console.log('✅ 成績查詢頁面初始化完成');
+            } else {
+                console.log('❌ 使用者未登入，重定向到登入頁面');
+                window.location.href = '../index.html';
+            }
+        });
+
+        // 載入所有成績
+        async function loadAllResults() {
+            try {
+                console.log('📝 載入成績資料...');
+
+                // 從 Firestore 載入提交記錄
+                // 1. 從 grading_events (Google Forms 提交)
+                const gradingEventsQuery = await db.collection('grading_events')
+                    .where('student_email', '==', currentUser.email)
+                    .get();
+
+                // 2. 從 submissions (考試提交)
+                const submissionsQuery = await db.collection('submissions')
+                    .where('student_id', '==', currentUser.uid)
+                    .get();
+
+                allSubmissions = [];
+
+                // 處理 grading_events
+                gradingEventsQuery.forEach(doc => {
+                    const data = doc.data();
+                    // 🔥 修復：批改系統用 'completed'，統一轉換成 'graded'
+                    const normalizedStatus = (data.status === 'completed' || data.graded_at) ? 'graded' : (data.status || 'pending');
+                    
+                    allSubmissions.push({
+                        id: doc.id,
+                        type: 'form',
+                        title: data.form_title || data.exam_title || '未命名表單',
+                        submittedAt: data.submission_time,
+                        gradedAt: data.graded_at,
+                        score: data.final_score || data.ai_score || data.total_score || 0,
+                        maxScore: data.total_points || 100,
+                        status: normalizedStatus,  // 🔥 使用統一的狀態
+                        feedback: data.final_feedback || data.feedback || '',
+                        aiGraded: !!data.ai_result,
+                        source: 'grading_events',
+                        data: data
+                    });
+                });
+
+                // 處理 submissions
+                submissionsQuery.forEach(doc => {
+                    const data = doc.data();
+                    // 🔥 修復：統一狀態判斷，completed 或有 graded_at 都視為已批改
+                    const normalizedStatus = (data.status === 'completed' || data.graded_at) ? 'graded' : (data.status || 'pending');
+                    
+                    allSubmissions.push({
+                        id: doc.id,
+                        type: data.exam_type || 'exam',
+                        title: data.exam_title || data.title || '未命名考試',
+                        submittedAt: data.created_at || data.submitted_at,
+                        gradedAt: data.graded_at,
+                        score: data.score || data.final_score || 0,
+                        maxScore: data.max_score || data.total_points || 100,
+                        status: normalizedStatus,  // 🔥 使用統一的狀態
+                        feedback: data.feedback || '',
+                        aiGraded: !!data.ai_result,
+                        source: 'submissions',
+                        data: data
+                    });
+                });
+
+                console.log(`✅ 成功載入 ${allSubmissions.length} 筆成績記錄`);
+                console.log('📊 成績狀態統計:');
+                const statusCount = {};
+                allSubmissions.forEach(s => {
+                    statusCount[s.status] = (statusCount[s.status] || 0) + 1;
+                });
+                console.log('  - 各狀態數量:', statusCount);
+                console.log('  - 已批改 (graded):', allSubmissions.filter(s => s.status === 'graded').length);
+                console.log('  - 批改中 (pending):', allSubmissions.filter(s => s.status === 'pending').length);
+
+                // 按提交時間排序（最新的在前）
+                allSubmissions.sort((a, b) => {
+                    const timeA = a.submittedAt ? (a.submittedAt.toDate ? a.submittedAt.toDate() : new Date(a.submittedAt)) : new Date(0);
+                    const timeB = b.submittedAt ? (b.submittedAt.toDate ? b.submittedAt.toDate() : new Date(b.submittedAt)) : new Date(0);
+                    return timeB - timeA;
+                });
+
+                filteredSubmissions = [...allSubmissions];
+                updateStatistics();
+                renderResults();
+
+            } catch (error) {
+                console.error('❌ 載入成績失敗:', error);
+
+                // 即使失敗也顯示空狀態而不是錯誤
+                allSubmissions = [];
+                filteredSubmissions = [];
+                updateStatistics();
+
+                document.getElementById('resultsContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3>暫無成績記錄</h3>
+                        <p>您還沒有提交任何考試或作業</p>
+                        <a href="exam.html" class="btn btn-primary" style="margin-top: 16px;">前往考試</a>
+                    </div>
+                `;
+
+                console.log('ℹ️ 如果您確定有提交記錄，請檢查 Firestore 權限設定');
+            }
+        }
+
+        // 更新統計數據
+        function updateStatistics() {
+            const total = allSubmissions.length;
+            const graded = allSubmissions.filter(s => s.status === 'graded').length;
+
+            let totalScore = 0;
+            let scoreCount = 0;
+            let highest = 0;
+
+            allSubmissions.forEach(submission => {
+                if (submission.status === 'graded' && submission.score !== undefined) {
+                    const percentage = (submission.score / submission.maxScore) * 100;
+                    totalScore += percentage;
+                    scoreCount++;
+                    if (percentage > highest) highest = percentage;
+                }
+            });
+
+            document.getElementById('totalSubmissions').textContent = total;
+            document.getElementById('gradedCount').textContent = graded;
+            document.getElementById('averageScore').textContent = scoreCount > 0 ?
+                Math.round(totalScore / scoreCount) + ' 分' :
+                '--';
+            document.getElementById('highestScore').textContent = scoreCount > 0 ?
+                Math.round(highest) + ' 分' :
+                '--';
+        }
+
+        // 渲染成績列表
+        function renderResults() {
+            const container = document.getElementById('resultsContainer');
+
+            if (filteredSubmissions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3>暫無成績記錄</h3>
+                        <p>您還沒有提交任何考試或作業</p>
+                        <a href="exam.html" class="btn btn-primary" style="margin-top: 16px;">前往考試</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredSubmissions.forEach(submission => {
+                        const percentage = submission.maxScore > 0 ?
+                            Math.round((submission.score / submission.maxScore) * 100) :
+                            0;
+
+                        const isGraded = submission.status === 'graded';
+
+                        let statusBadge = '';
+                        if (isGraded) {
+                            if (percentage >= 90) statusBadge = '<span class="badge badge-active">優秀</span>';
+                            else if (percentage >= 80) statusBadge = '<span class="badge badge-completed">良好</span>';
+                            else if (percentage >= 60) statusBadge = '<span class="badge badge-pending">及格</span>';
+                            else statusBadge = '<span class="badge badge-inactive">不及格</span>';
+                        } else {
+                            statusBadge = '<span class="badge badge-pending">批改中</span>';
+                        }
+
+                        const typeLabel = submission.type === 'exam' ? '考試' : submission.type === 'assignment' ? '作業' : '表單';
+                        const aiLabel = submission.aiGraded ? '<span class="badge" style="background: #e9d8fd; color: #6b46c1;">AI 批改</span>' : '';
+
+                        html += `
+                    <div class="item-card">
+                        <div class="item-header">
+                            <h3>${submission.title}</h3>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                ${statusBadge}
+                                ${aiLabel}
+                            </div>
+                        </div>
+                        <div class="item-meta">
+                            <div class="meta-item">
+                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                    <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                                類型：${typeLabel}
+                            </div>
+                            <div class="meta-item">
+                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                                提交時間：${formatDate(submission.submittedAt)}
+                            </div>
+                            ${isGraded ? `
+                                <div class="meta-item">
+                                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                        <path d="M10 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" fill="currentColor"/>
+                                    </svg>
+                                    分數：${submission.score} / ${submission.maxScore} (${percentage}%)
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="item-footer">
+                            ${isGraded ? `
+                                <button class="btn btn-primary btn-sm" onclick="viewDetail('${submission.id}', '${submission.source}')">查看詳情</button>
+                            ` : `
+                                <button class="btn btn-secondary btn-sm" disabled>批改中...</button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 查看詳情
+        async function viewDetail(id, source) {
+            try {
+                // 載入詳細數據並顯示模態框
+                const doc = await db.collection(source).doc(id).get();
+                if (!doc.exists) {
+                    alert('找不到成績記錄');
+                    return;
+                }
+
+                const data = doc.data();
+                showDetailModal(data, source);
+            } catch (error) {
+                console.error('載入詳情失敗:', error);
+                alert('載入詳情失敗：' + error.message);
+            }
+        }
+
+        // 顯示詳情模態框
+        function showDetailModal(data, source) {
+            const title = data.form_title || data.exam_title || data.title || '考試結果';
+            const score = data.final_score || data.ai_score || data.score || 0;
+            const maxScore = data.total_points || data.max_score || 100;
+            const percentage = Math.round((score / maxScore) * 100);
+            const feedback = data.final_feedback || data.feedback || '無評語';
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title">${title}</h2>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; margin-bottom: 20px;">
+                            <h3 style="margin: 0; font-size: 3rem; font-weight: 700;">${percentage}%</h3>
+                            <p style="margin: 10px 0 0; font-size: 1.1rem;">${score} / ${maxScore} 分</p>
+                        </div>
+                        
+                        <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-bottom: 16px;">
+                            <strong style="display: block; margin-bottom: 8px;">📝 提交時間：</strong>
+                            ${formatDate(data.submission_time || data.created_at || data.submitted_at)}
+                        </div>
+
+                        <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-bottom: 16px;">
+                            <strong style="display: block; margin-bottom: 8px;">📊 批改時間：</strong>
+                            ${formatDate(data.graded_at) || '尚未批改'}
+                        </div>
+
+                        ${data.ai_result ? '<div style="background: #e9d8fd; padding: 20px; border-radius: 8px; margin-bottom: 16px;"><strong style="display: block; margin-bottom: 8px;">🤖 AI 批改</strong>本次成績由 AI 三代理人系統批改</div>' : ''}
+
+                        <div style="background: #f7fafc; padding: 20px; border-radius: 8px;">
+                            <strong style="display: block; margin-bottom: 8px;">💬 總評：</strong>
+                            <p style="white-space: pre-wrap; line-height: 1.8; margin: 0;">${feedback}</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">關閉</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        // 篩選功能
+        function filterResults() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+
+            filteredSubmissions = allSubmissions.filter(submission => {
+                const matchSearch = submission.title.toLowerCase().includes(searchText);
+                const matchStatus = statusFilter === 'all' || submission.status === statusFilter;
+                const matchType = typeFilter === 'all' || submission.type === typeFilter;
+                return matchSearch && matchStatus && matchType;
+            });
+
+            renderResults();
+        }
+
+        // 綁定事件
+        function bindEvents() {
+            // 登出
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = '../index.html';
+                }).catch(error => {
+                    console.error('登出失敗:', error);
+                });
+            });
+
+            // 搜尋和篩選
+            document.getElementById('searchInput').addEventListener('input', filterResults);
+            document.getElementById('statusFilter').addEventListener('change', filterResults);
+            document.getElementById('typeFilter').addEventListener('change', filterResults);
+        }
+
+        // 格式化日期
+        function formatDate(timestamp) {
+            if (!timestamp) return '--';
+            try {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleString('zh-TW', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return '--';
+            }
+        }
+    </script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

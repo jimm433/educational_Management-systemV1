@@ -1,0 +1,446 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>題庫管理 - 教育管理系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css">
+    <link rel="stylesheet" href="../assets/css/tag-filter.css">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入題庫中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="5" width="14" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M3 8h14M7 5v-2M13 5v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">教育管理系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="../dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="question.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>題庫管理</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試管理</span>
+                    </a>
+                    <a href="course.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>課程管理</span>
+                    </a>
+                    <a href="grading.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>作業批改</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">分析與設定</div>
+                    <a href="analytic.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 14v-4M10 14V8M16 14v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>數據分析</span>
+                    </a>
+                    <a href="ai-assistant.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 2L3 7v6l7 5 7-5V7l-7-5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 12V8M8 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>AI 學習助手</span>
+                    </a>
+                    <a href="setting.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 2v2M10 16v2M18 10h-2M6 10H4M15.66 4.34l-1.41 1.41M5.75 14.25l-1.41 1.41M15.66 15.66l-1.41-1.41M5.75 5.75L4.34 4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>系統設定</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="../dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>題庫管理</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">教師</div>
+                            <div class="user-role">教師</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">題庫管理</h1>
+                    <p class="page-subtitle">新增、編輯、刪除題目</p>
+                </div>
+
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalQuestions">0</div>
+                        <div class="stat-label">題目總數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M3 7l7 4 7-4-7-4-7 4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalSubjects">0</div>
+                        <div class="stat-label">科目數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 3l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6l2-6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="avgDifficulty">-</div>
+                        <div class="stat-label">平均難度</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="weeklyNew">0</div>
+                        <div class="stat-label">本週新增</div>
+                    </div>
+                </div>
+
+                <!-- 工具欄 -->
+                <div class="toolbar">
+                    <!-- 搜尋欄 -->
+                    <div class="toolbar-section">
+                        <div class="search-container">
+                            <div class="search-input-group">
+                                <svg class="search-icon" viewBox="0 0 20 20" fill="none">
+                                    <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <input type="text" id="searchInput" class="search-input" placeholder="搜尋題目內容、科目、標籤...">
+                                <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">
+                                    <svg viewBox="0 0 20 20" fill="none">
+                                        <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 篩選器 -->
+                    <div class="toolbar-section">
+                        <div class="toolbar-label">篩選條件</div>
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <button class="filter-btn active" data-filter="subject" data-value="all">所有科目</button>
+                                <!-- 動態載入科目 -->
+                            </div>
+                            <div class="filter-group">
+                                <button class="btn btn-secondary" id="tagFilterBtn" onclick="openTagFilterModal()">
+                                    <svg viewBox="0 0 20 20" fill="none" style="width: 16px; height: 16px; margin-right: 4px;">
+                                        <path d="M17.59 2.41a1.99 1.99 0 00-2.83 0L3.17 13.99a2 2 0 000 2.83l1.41 1.41a2 2 0 002.83 0L18.99 6.65a1.99 1.99 0 000-2.83l-1.4-1.41z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M7 7l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span id="tagFilterText">篩選標籤</span>
+                                </button>
+                            </div>
+                            <div class="filter-group">
+                                <button class="filter-btn active" data-filter="difficulty" data-value="all">所有難度</button>
+                                <button class="filter-btn" data-filter="difficulty" data-value="easy">簡單</button>
+                                <button class="filter-btn" data-filter="difficulty" data-value="medium">中等</button>
+                                <button class="filter-btn" data-filter="difficulty" data-value="hard">困難</button>
+                            </div>
+                            <div class="filter-group">
+                                <button class="filter-btn active" data-filter="type" data-value="all">所有類型</button>
+                                <button class="filter-btn" data-filter="type" data-value="multiple">選擇題</button>
+                                <button class="filter-btn" data-filter="type" data-value="truefalse">是非題</button>
+                                <button class="filter-btn" data-filter="type" data-value="text">問答題</button>
+                                <button class="filter-btn" data-filter="type" data-value="code">程式題</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 操作按鈕 -->
+                    <div class="toolbar-section">
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" id="addQuestionBtn">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 5v10M5 10h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <span>新增題目</span>
+                    </button>
+                            <button class="btn btn-secondary" id="importBtn">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 3v10m0 0l-3-3m3 3l3-3M3 14v3a1 1 0 001 1h12a1 1 0 001-1v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>批次匯入</span>
+                    </button>
+                            <button class="btn btn-secondary" id="exportBtn">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 17V7m0 0l3 3m-3-3l-3 3M3 6v-3a1 1 0 011-1h12a1 1 0 011 1v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>匯出題目</span>
+                            </button>
+                            <button class="btn btn-secondary" id="jsonFormatBtn">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 5h12M4 9h12M4 13h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span>JSON 格式範例</span>
+                    </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 批量操作欄 -->
+                <div class="bulk-actions" id="bulkActionsBar" style="display: none;">
+                    <div class="bulk-info">
+                        已選擇 <strong id="selectedCount">0</strong> 個題目
+                    </div>
+                    <div class="bulk-buttons">
+                        <button class="btn btn-sm btn-secondary" id="selectAllBtn">全選</button>
+                        <button class="btn btn-sm btn-secondary" id="deselectAllBtn">取消全選</button>
+                        <button class="btn btn-sm btn-danger" id="bulkDeleteBtn">批量刪除</button>
+                    </div>
+                </div>
+
+                <!-- 題目列表 -->
+                <div class="questions-container">
+                    <div class="questions-list" id="questionsList">
+                        <!-- 空狀態 -->
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <h3>還沒有題目</h3>
+                            <p>點擊「新增題目」開始建立您的第一個題目</p>
+                            <button class="btn btn-primary" onclick="document.getElementById('addQuestionBtn').click()">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 5v10M5 10h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <span>新增題目</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 分頁 -->
+                    <div class="pagination" id="pagination" style="display: none;">
+                        <button class="page-btn" id="prevPageBtn">上一頁</button>
+                        <div id="pageNumbers"></div>
+                        <button class="page-btn" id="nextPageBtn">下一頁</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 新增/編輯題目模態框 -->
+    <div class="modal" id="questionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">新增題目</h2>
+                <button class="modal-close" onclick="closeQuestionModal()">
+                    <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="questionForm">
+                    <div class="form-group">
+                        <label class="form-label required">題目標題</label>
+                        <input type="text" class="form-input" id="questionTitle" required placeholder="例如：請寫一個程式，可以讀入指定的字串">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">題目類型</label>
+                        <select class="form-select" id="questionType" required onchange="toggleProgrammingFields()">
+                            <option value="text">問答題</option>
+                            <option value="code">程式題</option>
+                            <option value="multiple">選擇題</option>
+                            <option value="truefalse">是非題</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">科目</label>
+                        <input type="text" class="form-input" id="questionSubject" required placeholder="例如：C#、Python、數學">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">題目內容/說明</label>
+                        <textarea class="form-textarea" id="questionText" rows="4" placeholder="詳細的題目描述或說明"></textarea>
+                    </div>
+
+                    <div class="form-group" id="optionsSection">
+                        <label class="form-label required">選項設定</label>
+                        <div class="options-list" id="optionsList">
+                            <!-- 動態生成選項 -->
+                        </div>
+                        <button type="button" class="add-option-btn" onclick="addOption()">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="display: inline; vertical-align: middle;">
+                                <path d="M10 5v10M5 10h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            新增選項
+                        </button>
+                    </div>
+
+                    <div class="form-group" id="answerSection">
+                        <label class="form-label required">正確答案</label>
+                        <input type="text" class="form-input" id="questionAnswer" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">解答說明</label>
+                        <textarea class="form-textarea" id="questionExplanation" rows="3" placeholder="提供解題提示或標準答案說明"></textarea>
+                    </div>
+
+                    <!-- 程式題專用欄位 -->
+                    <div class="form-group" id="sampleInputSection" style="display: none;">
+                        <label class="form-label">範例輸入</label>
+                        <textarea class="form-textarea" id="sampleInput" rows="3" placeholder="例如：輸入: world"></textarea>
+                    </div>
+
+                    <div class="form-group" id="sampleOutputSection" style="display: none;">
+                        <label class="form-label">範例輸出</label>
+                        <textarea class="form-textarea" id="sampleOutput" rows="3" placeholder="例如：輸出: hello, world"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">分數</label>
+                        <input type="number" class="form-input" id="questionPoints" required value="25" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">難度</label>
+                        <select class="form-select" id="questionDifficulty" required>
+                            <option value="easy">簡單</option>
+                            <option value="medium">中等</option>
+                            <option value="hard">困難</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">標籤</label>
+                        <input type="text" class="form-input" id="questionTags" placeholder="用逗號分隔多個標籤">
+                        <p class="form-hint">標籤有助於題目分類和搜尋</p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeQuestionModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveQuestion()">儲存題目</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 標籤篩選彈窗 -->
+    <div id="tagFilterModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>篩選標籤</h2>
+                <button class="modal-close" onclick="closeTagFilterModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <input type="text" id="tagSearchInput" class="form-input" placeholder="搜尋標籤..." oninput="searchTags()">
+                </div>
+                <div id="tagListContainer" style="max-height: 400px; overflow-y: auto;">
+                    <!-- 標籤列表動態載入 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="clearTagFilter()">清除篩選</button>
+                <button class="btn btn-primary" onclick="closeTagFilterModal()">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="../assets/js/teacher-question.js"></script>
+        <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

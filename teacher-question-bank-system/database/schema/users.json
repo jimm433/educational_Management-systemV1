@@ -1,0 +1,114 @@
+{
+    "users": {
+        "description": "使用者資料集合",
+        "fields": {
+            "uid": {
+                "type": "string",
+                "description": "Firebase Auth UID",
+                "required": true
+            },
+            "email": {
+                "type": "string",
+                "description": "使用者電子郵件",
+                "required": true
+            },
+            "displayName": {
+                "type": "string",
+                "description": "顯示名稱"
+            },
+            "photoURL": {
+                "type": "string",
+                "description": "頭像圖片網址"
+            },
+            "role": {
+                "type": "string",
+                "description": "使用者角色",
+                "enum": ["teacher", "admin"],
+                "default": "teacher"
+            },
+            "school": {
+                "type": "string",
+                "description": "學校名稱"
+            },
+            "department": {
+                "type": "string",
+                "description": "科系/部門"
+            },
+            "subjects": {
+                "type": "array",
+                "description": "教授科目列表",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "preferences": {
+                "type": "object",
+                "description": "使用者偏好設定",
+                "properties": {
+                    "theme": {
+                        "type": "string",
+                        "enum": ["light", "dark"],
+                        "default": "light"
+                    },
+                    "language": {
+                        "type": "string",
+                        "default": "zh-TW"
+                    },
+                    "notifications": {
+                        "type": "object",
+                        "properties": {
+                            "email": {
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "browser": {
+                                "type": "boolean",
+                                "default": true
+                            }
+                        }
+                    }
+                }
+            },
+            "statistics": {
+                "type": "object",
+                "description": "使用者統計資料",
+                "properties": {
+                    "totalQuestions": {
+                        "type": "number",
+                        "default": 0
+                    },
+                    "totalExams": {
+                        "type": "number",
+                        "default": 0
+                    },
+                    "totalStudents": {
+                        "type": "number",
+                        "default": 0
+                    }
+                }
+            },
+            "createdAt": {
+                "type": "timestamp",
+                "description": "建立時間",
+                "required": true
+            },
+            "updatedAt": {
+                "type": "timestamp",
+                "description": "最後更新時間",
+                "required": true
+            },
+            "lastLoginAt": {
+                "type": "timestamp",
+                "description": "最後登入時間"
+            }
+        },
+        "indexes": [{
+                "fields": ["email"],
+                "unique": true
+            },
+            {
+                "fields": ["school", "department"]
+            }
+        ]
+    }
+}

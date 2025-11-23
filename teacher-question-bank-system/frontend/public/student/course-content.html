@@ -1,0 +1,726 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>課程內容 - 學生系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/student.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入課程內容中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">學生系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="course.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>我的課程</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試測驗</span>
+                    </a>
+                    <a href="assignment.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>作業繳交</span>
+                    </a>
+                    <a href="result.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>成績查詢</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">學習工具</div>
+                    <a href="profile.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>個人資料</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <a href="course.html">我的課程</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span id="courseNameBreadcrumb">課程內容</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">學生</div>
+                            <div class="user-role">學生</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 課程標題 -->
+                <div class="page-header">
+                    <h1 class="page-title" id="courseTitle">課程內容</h1>
+                    <p class="page-subtitle" id="courseDescription">載入中...</p>
+                </div>
+
+                <!-- 課程資訊卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="teacherName">--</div>
+                        <div class="stat-label">授課教師</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="examCount">0</div>
+                        <div class="stat-label">考試測驗</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5"/>
+                                    <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="assignmentCount">0</div>
+                        <div class="stat-label">作業任務</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 14v-4M10 14V8M16 14v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="progressPercent">0%</div>
+                        <div class="stat-label">完成進度</div>
+                    </div>
+                </div>
+
+                <!-- 課程內容標籤頁 -->
+                <div class="section-card">
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('exams')">考試測驗</button>
+                        <button class="tab-btn" onclick="switchTab('assignments')">作業任務</button>
+                        <button class="tab-btn" onclick="switchTab('announcements')">課程公告</button>
+                        <button class="tab-btn" onclick="switchTab('materials')">教材資源</button>
+                    </div>
+
+                    <!-- 考試測驗標籤 -->
+                    <div class="tab-content active" id="examsTab">
+                        <div class="section-header">
+                            <h2>考試測驗</h2>
+                            <a href="exam.html" class="view-all-link">查看全部</a>
+                        </div>
+                        <div id="examsList" class="items-list">
+                            <div class="empty-state">
+                                <p>尚無考試測驗</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 作業任務標籤 -->
+                    <div class="tab-content" id="assignmentsTab" style="display: none;">
+                        <div class="section-header">
+                            <h2>作業任務</h2>
+                            <a href="assignment.html" class="view-all-link">查看全部</a>
+                        </div>
+                        <div id="assignmentsList" class="items-list">
+                            <div class="empty-state">
+                                <p>尚無作業任務</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 課程公告標籤 -->
+                    <div class="tab-content" id="announcementsTab" style="display: none;">
+                        <div class="section-header">
+                            <h2>課程公告</h2>
+                        </div>
+                        <div id="announcementsList" class="items-list">
+                            <div class="empty-state">
+                                <p>尚無課程公告</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 教材資源標籤 -->
+                    <div class="tab-content" id="materialsTab" style="display: none;">
+                        <div class="section-header">
+                            <h2>教材資源</h2>
+                        </div>
+                        <div id="materialsList" class="items-list">
+                            <div class="empty-state">
+                                <p>尚無教材資源</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/firebase-config.js"></script>
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script>
+        console.log('📚 課程內容頁面載入中...');
+
+        let currentUser = null;
+        let currentCourseId = null;
+        let courseData = null;
+
+        // 從 URL 獲取課程 ID
+        const urlParams = new URLSearchParams(window.location.search);
+        currentCourseId = urlParams.get('courseId');
+
+        if (!currentCourseId) {
+            alert('缺少課程 ID');
+            window.location.href = 'course.html';
+        }
+
+        // 頁面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        async function initializePage() {
+            try {
+                // Firebase 已經在 firebase-config.js 中初始化
+                // 直接使用全域的 auth 和 db
+
+                // 檢查登入狀態
+                await checkAuth();
+
+                // 載入課程資料
+                await loadCourseData();
+
+                // 載入課程內容
+                await loadCourseContent();
+
+                // 隱藏載入畫面
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                // 綁定事件
+                bindEvents();
+
+                console.log('✅ 課程內容頁面初始化完成');
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+                alert('初始化失敗：' + error.message);
+                window.location.href = 'course.html';
+            }
+        }
+
+        function checkAuth() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        console.log('✅ 使用者已登入:', user.email);
+                        resolve();
+                    } else {
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        async function loadCourseData() {
+            try {
+                console.log('📚 載入課程資料:', currentCourseId);
+
+                // 載入課程基本資料
+                const courseDoc = await db.collection('courses').doc(currentCourseId).get();
+
+                if (!courseDoc.exists) {
+                    throw new Error('課程不存在');
+                }
+
+                courseData = {
+                    id: courseDoc.id,
+                    ...courseDoc.data()
+                };
+
+                console.log('✅ 課程資料:', courseData);
+
+                // 更新頁面標題
+                const courseName = courseData.name || courseData.courseName || '未命名課程';
+                document.getElementById('courseTitle').textContent = courseName;
+                document.getElementById('courseNameBreadcrumb').textContent = courseName;
+                document.getElementById('courseDescription').textContent = courseData.description || '無課程描述';
+
+                // 如果沒有 teacherName，嘗試從 teacherId 載入
+                let teacherName = courseData.teacherName || courseData.instructorName;
+                if (!teacherName && courseData.teacherId) {
+                    try {
+                        const teacherDoc = await db.collection('users').doc(courseData.teacherId).get();
+                        if (teacherDoc.exists) {
+                            const teacherData = teacherDoc.data();
+                            teacherName = teacherData.displayName || teacherData.name || teacherData.email;
+                        }
+                    } catch (err) {
+                        console.warn('⚠️ 無法載入教師資料:', err);
+                    }
+                }
+                document.getElementById('teacherName').textContent = teacherName || '未知教師';
+
+                // 載入課程統計
+                await loadCourseStats();
+
+            } catch (error) {
+                console.error('❌ 載入課程資料失敗:', error);
+                throw error;
+            }
+        }
+
+        async function loadCourseStats() {
+            try {
+                // 載入考試數量
+                const examsSnapshot = await db.collection('exams')
+                    .where('courseId', '==', currentCourseId)
+                    .get();
+                document.getElementById('examCount').textContent = examsSnapshot.size;
+
+                // 載入作業數量
+                const assignmentsSnapshot = await db.collection('assignments')
+                    .where('courseId', '==', currentCourseId)
+                    .get();
+                document.getElementById('assignmentCount').textContent = assignmentsSnapshot.size;
+
+                // 載入已提交作業數量（計算進度）
+                const submissionsSnapshot = await db.collection('submissions')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('courseId', '==', currentCourseId)
+                    .get();
+
+                const progress = assignmentsSnapshot.size > 0 ?
+                    Math.round((submissionsSnapshot.size / assignmentsSnapshot.size) * 100) :
+                    0;
+                document.getElementById('progressPercent').textContent = progress + '%';
+
+            } catch (error) {
+                console.error('❌ 載入統計失敗:', error);
+            }
+        }
+
+        async function loadCourseContent() {
+            await Promise.all([
+                loadExams(),
+                loadAssignments(),
+                loadAnnouncements(),
+                loadMaterials()
+            ]);
+        }
+
+        async function loadExams() {
+            try {
+                const examsSnapshot = await db.collection('exams')
+                    .where('courseId', '==', currentCourseId)
+                    .get();
+
+                const container = document.getElementById('examsList');
+
+                if (examsSnapshot.empty) {
+                    container.innerHTML = '<div class="empty-state"><p>尚無考試測驗</p></div>';
+                    return;
+                }
+
+                // 按時間排序並限制顯示數量
+                let exams = examsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                exams.sort((a, b) => {
+                    const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt)) : new Date(0);
+                    const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)) : new Date(0);
+                    return timeB - timeA;
+                });
+
+                exams = exams.slice(0, 5); // 只顯示前 5 個
+
+                let html = '';
+                for (const exam of exams) {
+
+                    // 移除狀態偵測，因為考試在 Google Forms 完成，無法在此偵測完成狀態
+                    html += `
+                        <div class="item-card">
+                            <div class="item-header">
+                                <h3>${exam.title || exam.name || '未命名考試'}</h3>
+                            </div>
+                            <p class="item-desc">${exam.description || '無描述'}</p>
+                            <div class="item-meta">
+                                <span>📝 ${exam.questionCount || 0} 題</span>
+                                <span>⏱️ ${exam.duration || 60} 分鐘</span>
+                                ${exam.dueDate ? `<span>📅 ${formatDate(exam.dueDate)}</span>` : ''}
+                            </div>
+                            <div class="item-footer">
+                                <button class="btn btn-sm btn-primary" onclick="startExam('${exam.id}')">開始考試</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('❌ 載入考試失敗:', error);
+            }
+        }
+
+        async function loadAssignments() {
+            try {
+                const assignmentsSnapshot = await db.collection('assignments')
+                    .where('courseId', '==', currentCourseId)
+                    .get();
+
+                const container = document.getElementById('assignmentsList');
+                
+                if (assignmentsSnapshot.empty) {
+                    container.innerHTML = '<div class="empty-state"><p>尚無作業任務</p></div>';
+                    return;
+                }
+
+                // 按時間排序並限制顯示數量
+                let assignments = assignmentsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                assignments.sort((a, b) => {
+                    const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt)) : new Date(0);
+                    const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)) : new Date(0);
+                    return timeB - timeA;
+                });
+                
+                assignments = assignments.slice(0, 5); // 只顯示前 5 個
+
+                let html = '';
+                for (const assignment of assignments) {
+                    // 檢查是否已提交
+                    const submissionSnapshot = await db.collection('submissions')
+                        .where('studentId', '==', currentUser.uid)
+                        .where('assignmentId', '==', assignment.id)
+                        .limit(1)
+                        .get();
+
+                    const hasSubmitted = !submissionSnapshot.empty;
+                    const status = hasSubmitted ? '已繳交' : '待繳交';
+                    const statusClass = hasSubmitted ? 'completed' : 'pending';
+
+                    html += `
+                        <div class="item-card">
+                            <div class="item-header">
+                                <h3>${assignment.title || assignment.name || '未命名作業'}</h3>
+                                <span class="badge badge-${statusClass}">${status}</span>
+                            </div>
+                            <p class="item-desc">${assignment.description || '無描述'}</p>
+                            <div class="item-meta">
+                                ${assignment.dueDate ? `<span>📅 截止：${formatDate(assignment.dueDate)}</span>` : ''}
+                            </div>
+                            <div class="item-footer">
+                                ${hasSubmitted 
+                                    ? `<button class="btn btn-sm btn-secondary" onclick="viewAssignmentResult('${assignment.id}')">查看成績</button>`
+                                    : `<button class="btn btn-sm btn-primary" onclick="submitAssignment('${assignment.id}')">繳交作業</button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('❌ 載入作業失敗:', error);
+            }
+        }
+
+        async function loadAnnouncements() {
+            try {
+                const announcementsSnapshot = await db.collection('announcements')
+                    .where('courseId', '==', currentCourseId)
+                    .orderBy('createdAt', 'desc')
+                    .limit(5)
+                    .get();
+
+                const container = document.getElementById('announcementsList');
+                
+                if (announcementsSnapshot.empty) {
+                    container.innerHTML = '<div class="empty-state"><p>尚無課程公告</p></div>';
+                    return;
+                }
+
+                let html = '';
+                announcementsSnapshot.forEach(doc => {
+                    const announcement = { id: doc.id, ...doc.data() };
+                    html += `
+                        <div class="item-card">
+                            <div class="item-header">
+                                <h3>${announcement.title || '未命名公告'}</h3>
+                                <span class="item-date">${formatDate(announcement.createdAt)}</span>
+                            </div>
+                            <p class="item-desc">${announcement.content || '無內容'}</p>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('❌ 載入公告失敗:', error);
+                document.getElementById('announcementsList').innerHTML = '<div class="empty-state"><p>尚無課程公告</p></div>';
+            }
+        }
+
+        async function loadMaterials() {
+            try {
+                const materialsSnapshot = await db.collection('materials')
+                    .where('courseId', '==', currentCourseId)
+                    .orderBy('createdAt', 'desc')
+                    .limit(10)
+                    .get();
+
+                const container = document.getElementById('materialsList');
+                
+                if (materialsSnapshot.empty) {
+                    container.innerHTML = '<div class="empty-state"><p>尚無教材資源</p></div>';
+                    return;
+                }
+
+                let html = '';
+                materialsSnapshot.forEach(doc => {
+                    const material = { id: doc.id, ...doc.data() };
+                    const fileIcon = getFileIcon(material.fileType);
+                    html += `
+                        <div class="item-card">
+                            <div class="item-header">
+                                <h3>${fileIcon} ${material.title || material.fileName || '未命名檔案'}</h3>
+                            </div>
+                            <p class="item-desc">${material.description || '無描述'}</p>
+                            <div class="item-footer">
+                                <button class="btn btn-sm btn-primary" onclick="downloadMaterial('${doc.id}', '${material.fileUrl}')">下載</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('❌ 載入教材失敗:', error);
+                document.getElementById('materialsList').innerHTML = '<div class="empty-state"><p>尚無教材資源</p></div>';
+            }
+        }
+
+        function switchTab(tabName) {
+            // 移除所有 active 狀態
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+                content.classList.remove('active');
+            });
+
+            // 設定當前 tab 為 active
+            event.target.classList.add('active');
+            const tabContent = document.getElementById(tabName + 'Tab');
+            tabContent.style.display = 'block';
+            tabContent.classList.add('active');
+        }
+
+        async function startExam(examId) {
+            try {
+                // 載入考試資料
+                const examDoc = await db.collection('exams').doc(examId).get();
+                if (!examDoc.exists) {
+                    alert('找不到考試資料');
+                    return;
+                }
+                
+                const exam = examDoc.data();
+                
+                // 檢查考試時間
+                const now = new Date();
+                
+                // 檢查開始時間
+                if (exam.startDate) {
+                    const startDate = exam.startDate.toDate ? exam.startDate.toDate() : new Date(exam.startDate);
+                    if (now < startDate) {
+                        alert(`考試尚未開始\n\n開始時間：${startDate.toLocaleString('zh-TW')}`);
+                        return;
+                    }
+                }
+                
+                // 檢查截止時間
+                if (exam.dueDate) {
+                    const dueDate = exam.dueDate.toDate ? exam.dueDate.toDate() : new Date(exam.dueDate);
+                    if (now > dueDate) {
+                        alert(`考試已截止\n\n截止時間：${dueDate.toLocaleString('zh-TW')}\n\n如需補考，請聯繫老師。`);
+                        return;
+                    }
+                }
+                
+                // 檢查是否有 Google Forms 連結
+                let formUrl = exam.formUrl || exam.googleFormUrl || exam.formLink;
+                
+                // 如果沒有直接的 formUrl，嘗試從 formId 建立連結
+                if (!formUrl && exam.formId) {
+                    formUrl = `https://docs.google.com/forms/d/${exam.formId}/viewform`;
+                }
+                
+                if (!formUrl) {
+                    alert('此考試沒有 Google Forms 連結，請聯繫老師。');
+                    return;
+                }
+                
+                // 確認後開啟 Google Forms
+                if (confirm('確定要開始考試嗎？\n\n系統將開啟 Google Forms 表單進行作答。')) {
+                    // 在新分頁開啟 Google Forms
+                    window.open(formUrl, '_blank');
+                }
+            } catch (error) {
+                console.error('❌ 開始考試失敗:', error);
+                alert('開始考試失敗：' + error.message);
+            }
+        }
+
+        function viewExamResult(examId) {
+            window.location.href = `result.html?examId=${examId}`;
+        }
+
+        function submitAssignment(assignmentId) {
+            window.location.href = `assignment.html?assignmentId=${assignmentId}`;
+        }
+
+        function viewAssignmentResult(assignmentId) {
+            window.location.href = `result.html?assignmentId=${assignmentId}`;
+        }
+
+        function downloadMaterial(materialId, fileUrl) {
+            if (fileUrl) {
+                window.open(fileUrl, '_blank');
+            } else {
+                alert('檔案連結不存在');
+            }
+        }
+
+        function getFileIcon(fileType) {
+            const icons = {
+                'pdf': '📄',
+                'doc': '📝',
+                'docx': '📝',
+                'ppt': '📊',
+                'pptx': '📊',
+                'xls': '📈',
+                'xlsx': '📈',
+                'zip': '📦',
+                'rar': '📦',
+                'image': '🖼️',
+                'video': '🎬',
+                'audio': '🎵'
+            };
+            return icons[fileType] || '📎';
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return '未知';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleDateString('zh-TW');
+        }
+
+        function bindEvents() {
+            // 登出按鈕
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = '../index.html';
+                }).catch(error => {
+                    console.error('登出失敗:', error);
+                });
+            });
+        }
+    </script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

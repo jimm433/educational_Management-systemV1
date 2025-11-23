@@ -1,0 +1,2831 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數據分析 - 教育管理系統</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        /* 學生表格樣式 */
+        
+        .students-table-container {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+        
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        .students-table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .students-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .students-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s;
+        }
+        
+        .students-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .students-table td {
+            padding: 12px 16px;
+            color: #212529;
+            font-size: 14px;
+        }
+        
+        .students-table .student-name {
+            font-weight: 500;
+            color: #1976d2;
+        }
+        
+        .students-table .score-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .students-table .score-badge.high {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .students-table .score-badge.medium {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .students-table .score-badge.low {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .students-table .view-detail-btn {
+            padding: 6px 16px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        
+        .students-table .view-detail-btn:hover {
+            background: #1565c0;
+        }
+        /* 學生統計卡片 */
+        
+        .student-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card-small {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-card-small .stat-label {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .stat-card-small .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1976d2;
+        }
+        /* 模態框樣式 */
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #212529;
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: #f8f9fa;
+        }
+        
+        .student-assignments-list {
+            margin-top: 16px;
+        }
+        
+        .assignment-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .assignment-item .assignment-title {
+            font-weight: 500;
+            color: #212529;
+        }
+        
+        .assignment-item .assignment-score {
+            font-weight: 600;
+            color: #1976d2;
+        }
+        /* 學生錯題詳細分析樣式 */
+        
+        .student-error-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .student-error-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f5f5f5;
+        }
+        
+        .student-error-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+        }
+        
+        .student-error-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: #6c757d;
+        }
+        
+        .student-error-stats span {
+            background: #f8f9fa;
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+        
+        .student-error-stats .error-count {
+            background: #ffebee;
+            color: #c62828;
+            font-weight: 600;
+        }
+        
+        .error-tags-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .error-tag-item {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 12px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .error-tag-item:hover {
+            background: #ffe0b2;
+            transform: translateX(4px);
+        }
+        
+        .error-tag-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e65100;
+            margin-bottom: 8px;
+        }
+        
+        .error-tag-exams {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.6;
+        }
+        
+        .error-tag-count {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入數據分析中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="5" width="14" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M3 8h14M7 5v-2M13 5v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">教育管理系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="../dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="question.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>題庫管理</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試管理</span>
+                    </a>
+                    <a href="course.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>課程管理</span>
+                    </a>
+                    <a href="grading.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>作業批改</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">分析與設定</div>
+                    <a href="analytic.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 14v-4M10 14V8M16 14v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>數據分析</span>
+                    </a>
+                    <a href="ai-assistant.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 2L3 6v8l7 4 7-4V6l-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            <path d="M10 6v8M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>AI 助理</span>
+                    </a>
+                    <a href="setting.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 2v2M10 16v2M18 10h-2M6 10H4M15.66 4.34l-1.41 1.41M5.75 14.25l-1.41 1.41M15.66 15.66l-1.41-1.41M5.75 5.75L4.34 4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>系統設定</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="../dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>數據分析</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">教師</div>
+                            <div class="user-role">教師</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">數據分析</h1>
+                    <p class="page-subtitle">分析學生作業批改數據，找出學習弱點</p>
+                </div>
+
+                <!-- 篩選工具列 -->
+                <div class="toolbar" style="margin-bottom: 24px;">
+                    <div class="toolbar-section" style="display: flex; gap: 12px; align-items: center;">
+                        <label style="font-weight: 600; color: var(--text-primary);">課程篩選：</label>
+                        <select id="courseFilter" class="filter-select" onchange="applyCourseFilter()" style="min-width: 200px;">
+                            <option value="">所有課程</option>
+                            <option value="no-course">獨立考試（無課程）</option>
+                            <!-- 動態載入課程列表 -->
+                        </select>
+                        <button class="btn btn-secondary btn-sm" onclick="resetFilters()">
+                            <svg viewBox="0 0 20 20" fill="none" style="width: 14px; height: 14px;">
+                                <path d="M3 10a7 7 0 0114 0M17 10a7 7 0 01-14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            重置篩選
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM10 6v4M10 14h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalGraded">0</div>
+                        <div class="stat-label">已批改作業</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 2v16M2 10h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="avgScore">0</div>
+                        <div class="stat-label">平均分數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 2L3 8v10h14V8L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="weakestTag">-</div>
+                        <div class="stat-label">最弱標籤</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalStudents">0</div>
+                        <div class="stat-label">學生人數</div>
+                    </div>
+                </div>
+
+                <!-- 篩選工具欄（已移除重複的課程篩選器） -->
+
+                <!-- 圖表區域 -->
+                <div class="analytics-grid">
+                    <!-- 標籤分布 (圓餅圖) -->
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">標籤分布統計</h3>
+                            <p class="card-subtitle">各類型題目的作業統計（優先顯示錯誤，否則顯示全部）</p>
+                        </div>
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="tagErrorChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 分數分布 (長條圖) -->
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">分數分布</h3>
+                            <p class="card-subtitle">學生分數區間分布情況</p>
+                        </div>
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="scoreDistributionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 學習趨勢 (折線圖) -->
+                    <div class="content-card full-width">
+                        <div class="card-header">
+                            <h3 class="card-title">學習趨勢</h3>
+                            <p class="card-subtitle">平均分數隨時間變化</p>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 學生錯題詳細分析 -->
+                    <div class="content-card full-width">
+                        <div class="card-header">
+                            <h3 class="card-title">學生錯題詳細分析</h3>
+                            <p class="card-subtitle">選擇課程和學生查看詳細錯題統計（逐題判斷，得分
+                                < 60% 算錯）</p>
+                        </div>
+
+                        <!-- 篩選器 -->
+                        <div style="padding: 16px; border-bottom: 1px solid #e0e0e0; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">選擇課程</label>
+                                <select id="errorDetailCourseFilter" onchange="updateErrorDetailFilters()" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                    <option value="">所有課程</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">選擇學生</label>
+                                <select id="errorDetailStudentFilter" onchange="updateErrorDetailDisplay()" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                    <option value="">請先選擇課程</option>
+                                </select>
+                            </div>
+                            <button onclick="clearErrorDetailFilters()" style="padding: 8px 16px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; margin-top: 28px;">
+                                清除篩選
+                            </button>
+                        </div>
+
+                        <div id="studentErrorDetails" style="padding: 16px;">
+                            <p style="text-align: center; color: #999;">請選擇課程和學生查看詳細分析</p>
+                        </div>
+                    </div>
+
+                    <!-- 弱點分析列表 -->
+                    <div class="content-card full-width">
+                        <div class="card-header">
+                            <h3 class="card-title">📊 標籤表現分析</h3>
+                            <p class="card-subtitle">各知識點的答對率與答錯數統計（由弱到強排序）<br>
+                                <span style="color: #ff9800; font-size: 12px;">⚠️ 僅統計有逐題數據的批改記錄（新批改的作業），舊格式數據已排除</span></p>
+                        </div>
+                        <div class="weakness-list" id="weaknessList">
+                            <!-- 動態載入 -->
+                        </div>
+                    </div>
+
+                    <!-- 學生表現排名 -->
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">學生表現排名</h3>
+                            <p class="card-subtitle">Top 10 學生平均分數</p>
+                        </div>
+                        <div class="ranking-list" id="rankingList">
+                            <!-- 動態載入 -->
+                        </div>
+                    </div>
+
+                    <!-- 所有學生列表 -->
+                    <div class="content-card full-width">
+                        <div class="card-header">
+                            <h3 class="card-title">所有學生分析</h3>
+                            <p class="card-subtitle">點擊學生查看詳細分析</p>
+                        </div>
+                        <div class="students-table-container">
+                            <table class="students-table" id="studentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>學生</th>
+                                        <th>作業數</th>
+                                        <th>平均分數</th>
+                                        <th>最高分</th>
+                                        <th>最低分</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsTableBody">
+                                    <!-- 動態載入 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 學生詳細分析模態框 -->
+    <div id="studentDetailModal" class="modal" style="display: none;" onclick="if(event.target === this) closeStudentDetail();">
+        <div class="modal-content" style="max-width: 900px;" onclick="event.stopPropagation();">
+            <div class="modal-header">
+                <h2 class="modal-title" id="studentDetailTitle">學生詳細分析</h2>
+                <button class="modal-close" onclick="closeStudentDetail()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 學生基本統計 -->
+                <div class="student-stats-grid">
+                    <div class="stat-card-small">
+                        <div class="stat-label">作業總數</div>
+                        <div class="stat-value" id="studentTotalAssignments">0</div>
+                    </div>
+                    <div class="stat-card-small">
+                        <div class="stat-label">平均分數</div>
+                        <div class="stat-value" id="studentAvgScore">0</div>
+                    </div>
+                    <div class="stat-card-small">
+                        <div class="stat-label">最高分</div>
+                        <div class="stat-value" id="studentMaxScore">0</div>
+                    </div>
+                    <div class="stat-card-small">
+                        <div class="stat-label">最低分</div>
+                        <div class="stat-value" id="studentMinScore">0</div>
+                    </div>
+                </div>
+
+                <!-- 學生弱點分析（雷達圖） -->
+                <div style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 12px;">📊 弱點分析雷達圖</h3>
+                    <div id="studentWeaknessChart" style="height: 400px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <canvas id="studentWeaknessCanvas" style="max-height: 360px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- 詳細錯題分析 -->
+                <div style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 12px;">❌ 詳細錯題分析</h3>
+                    <div id="studentDetailedErrors" style="background: #fff3e0; border-radius: 8px; padding: 16px;">
+                        <!-- 動態載入 -->
+                    </div>
+                </div>
+
+                <!-- 學生作業歷史 -->
+                <div style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 12px;">📝 作業歷史記錄</h3>
+                    <div class="student-assignments-list" id="studentAssignmentsList">
+                        <!-- 動態載入 -->
+                    </div>
+                </div>
+
+                <!-- 學習建議 -->
+                <div style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 12px;">💡 學習建議</h3>
+                    <div id="studentRecommendations" style="background: #e3f2fd; border-radius: 8px; padding: 16px;">
+                        <!-- 動態載入 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        let allGradings = [];
+        let filteredGradings = []; // 篩選後的數據
+        let charts = {};
+        let selectedCourseId = ''; // 當前選擇的課程
+        let examData = {}; // 🔥 全域變數：儲存考試的題目資料（用於反向查詢標籤）
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📊 數據分析頁面載入中...');
+            initializeAnalyticPage();
+        });
+
+        async function initializeAnalyticPage() {
+            try {
+                // 添加超時保護（30 秒）
+                const timeout = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('載入超時，請重新整理頁面')), 30000)
+                );
+
+                await Promise.race([
+                    (async() => {
+                        await checkAuthState();
+                        console.log('✅ 認證檢查完成');
+
+                        await loadCourseList(); // 載入課程列表
+                        console.log('✅ 課程列表載入完成');
+
+                        await loadGradingData();
+                        console.log('✅ 批改數據載入完成');
+
+                        initializeCharts();
+                        console.log('✅ 圖表初始化完成');
+
+                        renderAnalytics();
+                        console.log('✅ 渲染分析頁面完成');
+                    })(),
+                    timeout
+                ]);
+
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                console.log('✅ 數據分析頁面初始化完成');
+
+                // 檢查是否有從批改頁面傳來的學生篩選參數
+                const filterStudent = localStorage.getItem('analytics_filter_student');
+                if (filterStudent) {
+                    console.log('🔍 自動篩選學生:', filterStudent);
+                    localStorage.removeItem('analytics_filter_student');
+
+                    // 自動打開該學生的詳情
+                    setTimeout(() => {
+                        viewStudentDetail(filterStudent);
+                    }, 500);
+                }
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+
+                // 顯示友善的錯誤訊息
+                document.getElementById('loadingScreen').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                        <h3 style="color: #f44336; margin-bottom: 12px;">載入失敗</h3>
+                        <p style="color: #666; margin-bottom: 24px;">${error.message}</p>
+                        <button onclick="location.reload()" style="
+                            padding: 12px 24px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 14px;
+                        ">🔄 重新載入</button>
+                    </div>
+                `;
+            }
+        }
+
+        // 載入課程列表到篩選器
+        async function loadCourseList() {
+            try {
+                const coursesSnapshot = await db.collection('courses')
+                    .where('createdBy', '==', currentUser.uid)
+                    .where('status', '==', 'active')
+                    .get();
+
+                const courseFilter = document.getElementById('courseFilter');
+
+                coursesSnapshot.forEach(doc => {
+                    const course = doc.data();
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = `${course.name} (${course.code || doc.id.substring(0, 6)})`;
+                    courseFilter.appendChild(option);
+                });
+
+                console.log(`✅ 載入 ${coursesSnapshot.size} 個課程到篩選器`);
+            } catch (error) {
+                console.error('❌ 載入課程列表失敗:', error);
+            }
+        }
+
+        // 應用課程篩選
+        function applyCourseFilter() {
+            selectedCourseId = document.getElementById('courseFilter').value;
+            console.log('📊 篩選課程:', selectedCourseId || '所有課程');
+
+            if (!selectedCourseId) {
+                // 顯示所有課程
+                filteredGradings = [...allGradings];
+            } else if (selectedCourseId === 'no-course') {
+                // 只顯示沒有關聯課程的
+                filteredGradings = allGradings.filter(g => !g.courseId);
+            } else {
+                // 只顯示特定課程的
+                filteredGradings = allGradings.filter(g => g.courseId === selectedCourseId);
+            }
+
+            console.log(`✅ 篩選後數據: ${filteredGradings.length} 筆`);
+            renderAnalytics();
+        }
+
+        // 重置篩選
+        function resetFilters() {
+            document.getElementById('courseFilter').value = '';
+            selectedCourseId = '';
+            filteredGradings = [...allGradings];
+            renderAnalytics();
+            console.log('🔄 篩選已重置');
+        }
+
+        function checkAuthState() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(function(user) {
+                    if (user) {
+                        console.log('✅ 使用者已登入:', user.email);
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        resolve(user);
+                    } else {
+                        console.log('❌ 使用者未登入');
+                        window.location.href = '../dashboard.html';
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        async function loadGradingData() {
+            try {
+                console.log('📥 開始載入批改數據...');
+
+                // 添加超時保護（20 秒）
+                const timeout = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('載入批改數據超時')), 20000)
+                );
+
+                // 先嘗試從 grading_events 載入（Google Forms 同步的數據）
+                const snapshot = await Promise.race([
+                    db.collection('grading_events')
+                    .where('status', '==', 'completed')
+                    .get(),
+                    timeout
+                ]);
+
+                console.log(`✅ 成功載入 ${snapshot.docs.length} 筆批改記錄`);
+
+                // 如果沒有數據，嘗試 submissions
+                if (snapshot.empty) {
+                    console.log('📝 grading_events 無數據，嘗試 submissions...');
+                    snapshot = await db.collection('submissions')
+                        .where('status', '==', 'graded')
+                        .get();
+                }
+
+                // 先檢查數據結構
+                if (snapshot.docs.length > 0) {
+                    const sampleData = snapshot.docs[0].data();
+                    console.log('📋 批改記錄範例數據:', sampleData);
+                    console.log('📋 可用欄位:', Object.keys(sampleData));
+                }
+
+                // 🔥 優化：檢查有多少記錄已經有 analytics_data
+                const hasAnalyticsData = snapshot.docs.filter(doc => doc.data().analytics_data).length;
+                const totalDocs = snapshot.docs.length;
+                console.log(`📊 數據狀態: ${hasAnalyticsData}/${totalDocs} 筆有 analytics_data（${Math.round(hasAnalyticsData/totalDocs*100)}%）`);
+
+                // 只有當超過 50% 的記錄沒有 analytics_data 時，才批次載入考試資料
+                // examData 已經是全域變數，不需要重新宣告
+                examData = {}; // 清空並重新載入
+                const needExamData = (hasAnalyticsData / totalDocs) < 0.5;
+
+                if (needExamData) {
+                    console.log('⚠️ 大部分記錄沒有 analytics_data，需要載入考試資料...');
+
+                    // 先收集所有的 exam_id
+                    const examIds = new Set();
+                    snapshot.docs.forEach(doc => {
+                        const data = doc.data();
+                        if (!data.analytics_data) { // 只收集沒有 analytics_data 的
+                            const examId = data.exam_id || data.examId || data.form_id;
+                            if (examId) {
+                                examIds.add(examId);
+                            }
+                        }
+                    });
+
+                    // 批次載入考試資料以獲取 courseId 和題目標籤
+                    if (examIds.size > 0) {
+                        console.log(`📚 載入 ${examIds.size} 個考試的詳細資訊和題庫標籤...`);
+                        for (const examId of examIds) {
+                            try {
+                                console.log(`  🔍 查詢 examId=${examId.substring(0, 12)}...`);
+
+                                // 方法1: 嘗試直接用 document ID 查詢 exams
+                                let exam = null;
+                                let foundIn = null;
+
+                                try {
+                                    const examDoc = await db.collection('exams').doc(examId).get();
+                                    if (examDoc.exists) {
+                                        exam = examDoc.data();
+                                        foundIn = 'exams (doc ID)';
+                                    }
+                                } catch (e) {
+                                    console.log(`    ℹ️ 不是 exams 的 document ID`);
+                                }
+
+                                // 方法2: 如果不是 document ID，嘗試查詢 googleForms collection
+                                if (!exam) {
+                                    try {
+                                        const formsSnapshot = await db.collection('googleForms')
+                                            .where('formId', '==', examId)
+                                            .limit(1)
+                                            .get();
+                                        if (!formsSnapshot.empty) {
+                                            exam = formsSnapshot.docs[0].data();
+                                            foundIn = 'googleForms';
+                                            console.log(`    ℹ️ 找到 googleForms，examId=${exam.examId || '無'}`);
+                                        }
+                                    } catch (e) {
+                                        console.log(`    ℹ️ 不在 googleForms collection`);
+                                    }
+                                }
+
+                                // 方法3: 從所有 grading_events 的 tags 和 answers 中提取
+                                // （因為 Google Forms 同步時會寫入這些資料）
+                                if (!exam) {
+                                    console.log(`    🔄 從批改記錄中提取標籤和答案...`);
+                                    const gradingSnapshot = await db.collection('grading_events')
+                                        .where('form_id', '==', examId)
+                                        .limit(1)
+                                        .get();
+
+                                    if (!gradingSnapshot.empty) {
+                                        const gradingData = gradingSnapshot.docs[0].data();
+                                        exam = {
+                                            title: gradingData.form_title || gradingData.exam_title || '未命名考試',
+                                            courseId: null, // 從 grading_events 無法取得課程資訊
+                                            courseName: null,
+                                            tags: gradingData.tags || [],
+                                            answers: gradingData.answers || {}
+                                        };
+                                        foundIn = 'grading_events';
+                                    }
+                                }
+
+                                if (exam) {
+                                    console.log(`  📋 找到考試 (來源: ${foundIn}):`, exam.title || exam.name, `| 課程:`, exam.courseName || '無');
+                                    console.log(`  📋 考試資料結構:`, Object.keys(exam));
+
+                                    // 從考試中提取題目、標籤和答案
+                                    const examTags = new Set();
+                                    const questionAnswers = {};
+                                    let questionsArray = [];
+
+                                    // 🔥 從 examData 中提取題目、標籤和答案
+                                    let dataSource = exam;
+                                    if (exam.examData && typeof exam.examData === 'object') {
+                                        console.log(`  🔍 發現 examData 欄位，使用其中的數據`);
+                                        console.log(`  📋 examData 結構:`, Object.keys(exam.examData));
+                                        dataSource = exam.examData;
+                                    }
+
+                                    // 處理 questions 欄位（題庫定義）
+                                    if (dataSource.questions && Array.isArray(dataSource.questions)) {
+                                        const rawQuestions = dataSource.questions;
+                                        console.log(`  ✅ 找到 questions 陣列，共 ${rawQuestions.length} 題`);
+
+                                        // 🔍 診斷：判斷是 ID 陣列還是物件陣列
+                                        const firstItem = rawQuestions[0];
+                                        const isIdArray = typeof firstItem === 'string';
+
+                                        if (isIdArray) {
+                                            // 情況 1: questions 是 ID 陣列，需要從 Firestore 查詢
+                                            console.log(`  🔍 偵測到 ID 陣列，從 questions collection 查詢...`);
+                                            console.log(`  📋 題目 ID 列表（前3個）:`, rawQuestions.slice(0, 3));
+
+                                            try {
+                                                // 批量查詢題目資料（最多查詢 30 個）
+                                                const questionIds = rawQuestions.slice(0, 30);
+                                                const questionPromises = questionIds.map(qId =>
+                                                    db.collection('questions').doc(qId).get().catch(() => null)
+                                                );
+                                                const questionDocs = await Promise.all(questionPromises);
+
+                                                // 過濾掉不存在的文檔
+                                                const validQuestions = questionDocs
+                                                    .filter(doc => doc && doc.exists)
+                                                    .map(doc => ({
+                                                        id: doc.id,
+                                                        ...doc.data()
+                                                    }));
+
+                                                console.log(`  ✅ 成功載入 ${validQuestions.length}/${questionIds.length} 個題目`);
+
+                                                if (validQuestions.length > 0) {
+                                                    console.log(`  🔍 第一題（實際資料）結構:`, Object.keys(validQuestions[0]));
+                                                }
+
+                                                // 從實際的題目物件中提取標籤和答案
+                                                validQuestions.forEach((q, idx) => {
+                                                    // 收集標籤
+                                                    if (q.tags && Array.isArray(q.tags)) {
+                                                        q.tags.forEach(tag => {
+                                                            if (tag && tag.trim()) examTags.add(tag.trim());
+                                                        });
+                                                    } else if (q.tag && typeof q.tag === 'string' && q.tag.trim()) {
+                                                        examTags.add(q.tag.trim());
+                                                    }
+
+                                                    // 收集正確答案
+                                                    const qText = q.question || q.text || q.title || q.content || `第 ${idx + 1} 題`;
+                                                    const qAnswer = q.answer || q.correctAnswer || q.standardAnswer || q.solution || q.expectedAnswer;
+                                                    if (qText && qAnswer) {
+                                                        questionAnswers[qText] = qAnswer;
+                                                    }
+                                                });
+
+                                                questionsArray = validQuestions; // 更新為實際的題目物件陣列
+                                            } catch (err) {
+                                                console.warn(`  ⚠️ 查詢題目資料失敗:`, err);
+                                            }
+                                        } else {
+                                            // 情況 2: questions 已經是物件陣列
+                                            console.log(`  🔍 偵測到物件陣列`);
+                                            if (rawQuestions.length > 0) {
+                                                console.log(`  🔍 第一題結構:`, Object.keys(rawQuestions[0]));
+                                            }
+
+                                            questionsArray = rawQuestions;
+
+                                            // 從題庫定義中提取標籤和答案
+                                            rawQuestions.forEach((q, idx) => {
+                                                // 收集標籤
+                                                if (q.tags && Array.isArray(q.tags)) {
+                                                    q.tags.forEach(tag => {
+                                                        if (tag && tag.trim()) examTags.add(tag.trim());
+                                                    });
+                                                } else if (q.tag && typeof q.tag === 'string' && q.tag.trim()) {
+                                                    examTags.add(q.tag.trim());
+                                                }
+
+                                                // 收集正確答案
+                                                const qText = q.question || q.text || q.title || q.content || `第 ${idx + 1} 題`;
+                                                const qAnswer = q.answer || q.correctAnswer || q.standardAnswer || q.solution || q.expectedAnswer;
+                                                if (qText && qAnswer) {
+                                                    questionAnswers[qText] = qAnswer;
+                                                }
+                                            });
+                                        }
+                                    }
+
+                                    console.log(`  📊 提取結果: 標籤 ${examTags.size} 個，答案 ${Object.keys(questionAnswers).length} 個`);
+
+                                    // 從頂層的 exam 獲取課程資訊（不是從 examData）
+                                    let courseId = exam.courseId || null;
+                                    let courseName = exam.courseName || null;
+
+                                    // 🔥 如果沒有課程資訊，透過 examId 反向查詢
+                                    if (!courseId && exam.examId) {
+                                        console.log(`  🔄 透過 examId=${exam.examId} 反向查詢 exams...`);
+                                        try {
+                                            const examDoc = await db.collection('exams').doc(exam.examId).get();
+                                            if (examDoc.exists) {
+                                                const examDocData = examDoc.data();
+                                                courseId = examDocData.courseId || null;
+                                                courseName = examDocData.courseName || null;
+                                                console.log(`  ✅ 反向查詢成功 → ${courseName || '無'}`);
+                                            }
+                                        } catch (e) {
+                                            console.warn(`  ⚠️ 反向查詢失敗:`, e);
+                                        }
+                                    }
+
+                                    examData[examId] = {
+                                        courseId: courseId,
+                                        courseName: courseName,
+                                        title: exam.title || exam.name || null,
+                                        tags: Array.from(examTags),
+                                        answers: questionAnswers,
+                                        questions: questionsArray
+                                    };
+
+                                    console.log(`  ✅ 考試 ${examId.substring(0, 8)}: 課程「${courseName || '無'}」| 標籤 ${examTags.size} 個 | 答案 ${Object.keys(questionAnswers).length} 個`);
+                                } else {
+                                    console.warn(`  ⚠️ 未找到 examId=${examId} 的考試資料（已嘗試 exams、googleForms、grading_events）`);
+                                }
+                            } catch (err) {
+                                console.warn(`  ⚠️ 無法載入考試 ${examId}:`, err);
+                            }
+                        }
+                    }
+                } else {
+                    console.log('✅ 大部分記錄已有 analytics_data，跳過考試資料載入');
+                }
+
+                // 去重：同一個學生的同一份作業只保留最新的批改記錄
+                const gradingMap = {};
+                snapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    const studentKey = data.student_email || data.student_name || 'unknown';
+                    const examKey = data.exam_id || data.examId || data.form_id || 'unknown';
+                    const uniqueKey = `${studentKey}_${examKey}`;
+
+                    // 只保留最新的批改記錄
+                    if (!gradingMap[uniqueKey] ||
+                        (data.graded_at && gradingMap[uniqueKey].graded_at &&
+                            data.graded_at.toMillis() > gradingMap[uniqueKey].graded_at.toMillis())) {
+                        gradingMap[uniqueKey] = {
+                            id: doc.id,
+                            data: data
+                        };
+                    }
+                });
+
+                console.log(`📊 去重前: ${snapshot.docs.length} 筆，去重後: ${Object.keys(gradingMap).length} 筆`);
+
+                allGradings = Object.values(gradingMap).map(({
+                    id,
+                    data
+                }) => {
+                    // 🔥 優先使用 analytics_data（格式化好的數據）
+                    if (data.analytics_data) {
+                        console.log(`✅ 記錄 ${id} 使用 analytics_data`);
+                        const ad = data.analytics_data;
+                        return {
+                            id: id,
+                            score: ad.summary.totalScore,
+                            maxScore: ad.summary.maxScore,
+                            studentEmail: data.student_email || '未知',
+                            studentName: data.student_name || '未知',
+                            tags: ad.tags || ['未分類'],
+                            tagStats: ad.tagStats || {},
+                            difficulty: data.difficulty || 'medium',
+                            createdAt: data.graded_at || data.created_at || data.timestamp,
+                            examId: ad.examId || '',
+                            examTitle: ad.examTitle || '未命名',
+                            courseId: ad.courseId, // 從 analytics_data 直接取得
+                            courseName: ad.courseName, // 從 analytics_data 直接取得
+                            ai_result: data.ai_result || null,
+                            aiResult: data.ai_result || null,
+                            answers: data.answers || {},
+                            questions: ad.questions || [], // 詳細的每題資料
+                            analyticsData: ad, // 保留完整的 analytics_data
+                            analytics_data: ad // 🔥 重要：保留這個屬性給 updateWeaknessList 使用
+                        };
+                    }
+
+                    // ⚠️ 舊數據格式的兼容處理（沒有 analytics_data 的舊記錄）
+                    console.log(`⚠️ 記錄 ${id} 使用舊格式數據`);
+                    const examId = data.exam_id || data.examId || data.form_id;
+
+                    // 從考試數據中獲取標題、標籤和課程資訊
+                    let title = null;
+                    let tags = [];
+                    let courseId = null;
+                    let courseName = null;
+
+                    if (examId && examData[examId]) {
+                        title = examData[examId].title;
+                        courseId = examData[examId].courseId;
+                        courseName = examData[examId].courseName;
+                    }
+
+                    // 優先從考試數據中獲取標籤
+                    if (examId && examData[examId] && examData[examId].tags && examData[examId].tags.length > 0) {
+                        tags = examData[examId].tags;
+                    }
+                    // 其次從 grading_events 的 tags 欄位獲取
+                    else if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
+                        tags = data.tags.filter(tag => tag && tag.trim() !== '');
+                    }
+                    // 再從 AI 批改結果中獲取標籤
+                    else if (data.ai_result && data.ai_result.results && Array.isArray(data.ai_result.results)) {
+                        const tagsFromResults = new Set();
+                        data.ai_result.results.forEach(result => {
+                            if (result.question && result.question.tags && Array.isArray(result.question.tags)) {
+                                result.question.tags.forEach(tag => {
+                                    if (tag && tag.trim() !== '') tagsFromResults.add(tag);
+                                });
+                            } else if (result.tags && Array.isArray(result.tags)) {
+                                result.tags.forEach(tag => {
+                                    if (tag && tag.trim() !== '') tagsFromResults.add(tag);
+                                });
+                            }
+                        });
+                        if (tagsFromResults.size > 0) {
+                            tags = Array.from(tagsFromResults);
+                        }
+                    }
+
+                    if (tags.length === 0) {
+                        tags = ['未分類'];
+                    }
+
+                    if (!title) {
+                        title = data.exam_title ||
+                            data.subject ||
+                            data.title ||
+                            data.assignment_title ||
+                            data.form_title ||
+                            (examId ? `考試 ${examId.substring(0, 8)}` : null) ||
+                            `作業批改 ${id.substring(0, 8)}`;
+                    }
+
+                    return {
+                        id: id,
+                        score: (data.arbitration && data.arbitration.final_score) ||
+                            (data.ai_result && data.ai_result.finalScore) ||
+                            data.gpt_score ||
+                            data.total_score || 0,
+                        studentEmail: data.student_email || data.student_name || '未知',
+                        studentName: data.student_name || data.student_email || '未知',
+                        tags: tags,
+                        difficulty: data.difficulty || 'medium',
+                        createdAt: data.submitted_at || data.created_at || data.timestamp,
+                        examId: examId || '',
+                        examTitle: title,
+                        courseId: courseId,
+                        courseName: courseName,
+                        ai_result: data.ai_result || null,
+                        aiResult: data.ai_result || null,
+                        answers: data.answers || {},
+                        examData: examData[examId] || null
+                    };
+                });
+
+                console.log(`✅ 載入 ${allGradings.length} 筆批改數據`);
+                console.log('📊 數據示例:', allGradings.slice(0, 3));
+
+                // 初始化篩選數據（預設顯示所有）
+                filteredGradings = [...allGradings];
+
+                // 統計標籤數量
+                const totalTags = allGradings.reduce((sum, g) => sum + ((g.tags && g.tags.length) || 0), 0);
+                const recordsWithTags = allGradings.filter(g => g.tags && g.tags.length > 0).length;
+                console.log(`📊 標籤統計: ${recordsWithTags}/${allGradings.length} 筆有標籤，共 ${totalTags} 個標籤`);
+
+                // 顯示所有實際的標籤值
+                const allTagValues = new Set();
+                allGradings.forEach(g => {
+                    if (g.tags && Array.isArray(g.tags)) {
+                        g.tags.forEach(tag => allTagValues.add(tag));
+                    }
+                });
+                console.log(`📊 所有唯一標籤值 (${allTagValues.size} 個):`, Array.from(allTagValues));
+
+                // 顯示每筆記錄的標籤
+                console.log('📊 每筆記錄的標籤詳情:');
+                allGradings.forEach((g, idx) => {
+                    console.log(`  [${idx + 1}] ${g.examTitle}: ${g.tags ? g.tags.join(', ') : '無標籤'} | courseId: ${g.courseId || '無'} | courseName: ${g.courseName || '無'}`);
+                });
+            } catch (error) {
+                console.error('❌ 載入數據失敗:', error);
+            }
+        }
+
+        function initializeCharts() {
+            // 標籤錯誤分布圓餅圖
+            const tagCtx = document.getElementById('tagErrorChart');
+            charts.tagError = new Chart(tagCtx, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [] // 動態生成顏色
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 12
+                                },
+                                padding: 15,
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map((label, i) => {
+                                            const value = data.datasets[0].data[i];
+                                            const bgColor = data.datasets[0].backgroundColor[i];
+                                            return {
+                                                text: `${label}: ${value} 次`,
+                                                fillStyle: bgColor,
+                                                hidden: false,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} 次 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 分數分布長條圖
+            const scoreCtx = document.getElementById('scoreDistributionChart');
+            charts.scoreDistribution = new Chart(scoreCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+                    datasets: [{
+                        label: '學生人數',
+                        data: [],
+                        backgroundColor: '#1976d2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // 學習趨勢折線圖
+            const trendCtx = document.getElementById('trendChart');
+            charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '平均分數',
+                        data: [],
+                        borderColor: '#1976d2',
+                        backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+        }
+
+        function renderAnalytics() {
+            const dataToUse = filteredGradings.length > 0 ? filteredGradings : allGradings;
+
+            if (dataToUse.length === 0) {
+                // 顯示空狀態
+                document.getElementById('totalGraded').textContent = 0;
+                document.getElementById('avgScore').textContent = 0;
+                document.getElementById('weakestTag').textContent = '-';
+                document.getElementById('totalStudents').textContent = 0;
+                return;
+            }
+
+            updateStatistics(dataToUse);
+            updateTagErrorChart(dataToUse);
+            updateScoreDistribution(dataToUse);
+            updateTrendChart(dataToUse);
+            updateStudentErrorDetails(dataToUse); // 新增：學生錯題詳細分析
+            updateWeaknessList(dataToUse);
+            updateRankingList(dataToUse);
+            updateStudentsTable(dataToUse);
+        }
+
+        function updateStatistics(dataToUse = filteredGradings) {
+            const totalGraded = dataToUse.length;
+            const avgScore = totalGraded > 0 ?
+                (dataToUse.reduce((sum, g) => sum + (g.score || 0), 0) / totalGraded).toFixed(1) :
+                0;
+
+            const students = new Set(dataToUse.map(g => g.studentEmail || g.studentName));
+
+            // 找出最弱標籤
+            const tagErrors = {};
+            dataToUse.forEach(g => {
+                if (g.tags && Array.isArray(g.tags)) {
+                    g.tags.forEach(tag => {
+                        if (g.score < 60) {
+                            tagErrors[tag] = (tagErrors[tag] || 0) + 1;
+                        }
+                    });
+                }
+            });
+
+            const weakestTag = Object.keys(tagErrors).length > 0 ?
+                Object.keys(tagErrors).reduce((a, b) => tagErrors[a] > tagErrors[b] ? a : b) :
+                '-';
+
+            document.getElementById('totalGraded').textContent = totalGraded;
+            document.getElementById('avgScore').textContent = avgScore;
+            document.getElementById('weakestTag').textContent = weakestTag;
+            document.getElementById('totalStudents').textContent = students.size;
+        }
+
+        // 動態生成唯一顏色
+        function generateDistinctColors(count) {
+            const colors = [];
+            const baseColors = [
+                '#1976d2', // 藍色
+                '#d32f2f', // 紅色
+                '#388e3c', // 綠色
+                '#f57c00', // 橙色
+                '#7b1fa2', // 紫色
+                '#0097a7', // 青色
+                '#c2185b', // 粉紅
+                '#5d4037', // 棕色
+                '#455a64', // 藍灰
+                '#fbc02d', // 黃色
+                '#512da8', // 深紫
+                '#00796b', // 深青
+                '#e64a19', // 深橙
+                '#1565c0', // 深藍
+                '#6a1b9a' // 紫羅蘭
+            ];
+
+            for (let i = 0; i < count; i++) {
+                colors.push(baseColors[i % baseColors.length]);
+            }
+
+            return colors;
+        }
+
+        function updateTagErrorChart(dataToUse = filteredGradings) {
+            if (!dataToUse || dataToUse.length === 0) dataToUse = allGradings;
+            const tagErrors = {};
+            const tagTotal = {};
+
+            console.log('📊 [標籤分布] 開始統計...');
+
+            allGradings.forEach((g, idx) => {
+                // 🔥 優先使用 analytics_data.questions（逐題數據）
+                if (g.analytics_data && g.analytics_data.questions && Array.isArray(g.analytics_data.questions)) {
+                    g.analytics_data.questions.forEach(q => {
+                        const tags = q.tags || ['未分類'];
+                        const finalScore = q.score || q.finalScore || 0;
+                        const maxScore = q.maxScore || 10;
+                        const isCorrect = finalScore >= maxScore * 0.6; // 60% 以上算對
+
+                        tags.forEach(tag => {
+                            tagTotal[tag] = (tagTotal[tag] || 0) + 1;
+                            if (!isCorrect) {
+                                tagErrors[tag] = (tagErrors[tag] || 0) + 1;
+                            }
+                        });
+                    });
+                } else if (g.tags && Array.isArray(g.tags) && g.tags.length > 0) {
+                    // 舊格式：使用整份作業的標籤（不準確，僅作為後備）
+                    console.log(`  ⚠️ [${idx + 1}] 使用舊格式（整份作業）`);
+                    g.tags.forEach(tag => {
+                        tagTotal[tag] = (tagTotal[tag] || 0) + 1;
+                        if (g.score < 60) {
+                            tagErrors[tag] = (tagErrors[tag] || 0) + 1;
+                        }
+                    });
+                }
+            });
+
+            console.log('📊 標籤統計:', {
+                總標籤數: Object.keys(tagTotal).length,
+                標籤分布: tagTotal,
+                錯誤分布: tagErrors
+            });
+
+            // 優先顯示錯誤分布，如果沒有錯誤則顯示總分布
+            let labels, data;
+
+            if (Object.keys(tagErrors).length > 0) {
+                // 有錯誤：顯示錯誤分布
+                const sortedErrors = Object.entries(tagErrors)
+                    .sort((a, b) => b[1] - a[1]); // 按錯誤次數排序
+                labels = sortedErrors.map(([tag]) => tag);
+                data = sortedErrors.map(([, count]) => count);
+                console.log('📊 顯示標籤錯誤分布:', {
+                    labels,
+                    data
+                });
+            } else if (Object.keys(tagTotal).length > 0) {
+                // 沒有錯誤但有標籤：顯示總分布
+                const sortedTotal = Object.entries(tagTotal)
+                    .sort((a, b) => b[1] - a[1]); // 按總數排序
+                labels = sortedTotal.map(([tag]) => tag);
+                data = sortedTotal.map(([, count]) => count);
+                console.log('✅ 沒有錯誤，顯示標籤總分布:', {
+                    labels,
+                    data
+                });
+            } else {
+                // 完全沒有標籤數據
+                labels = ['暫無標籤數據'];
+                data = [1];
+                console.warn('⚠️ 沒有任何標籤數據');
+            }
+
+            // 生成唯一顏色
+            const colors = generateDistinctColors(labels.length);
+
+            charts.tagError.data.labels = labels;
+            charts.tagError.data.datasets[0].data = data;
+            charts.tagError.data.datasets[0].backgroundColor = colors;
+            charts.tagError.update();
+        }
+
+        function updateScoreDistribution() {
+            const ranges = [0, 0, 0, 0, 0]; // 0-20, 21-40, 41-60, 61-80, 81-100
+
+            allGradings.forEach(g => {
+                const score = g.score || 0;
+                if (score <= 20) ranges[0]++;
+                else if (score <= 40) ranges[1]++;
+                else if (score <= 60) ranges[2]++;
+                else if (score <= 80) ranges[3]++;
+                else ranges[4]++;
+            });
+
+            charts.scoreDistribution.data.datasets[0].data = ranges;
+            charts.scoreDistribution.update();
+        }
+
+        function updateTrendChart() {
+            // 按日期分組計算平均分
+            const dateScores = {};
+            allGradings.forEach(g => {
+                const date = (g.createdAt && g.createdAt.toDate) ? g.createdAt.toDate().toLocaleDateString() : '未知';
+                if (!dateScores[date]) {
+                    dateScores[date] = {
+                        total: 0,
+                        count: 0
+                    };
+                }
+                dateScores[date].total += (g.score || 0);
+                dateScores[date].count++;
+            });
+
+            const labels = Object.keys(dateScores).sort();
+            const data = labels.map(date => (dateScores[date].total / dateScores[date].count).toFixed(1));
+
+            charts.trend.data.labels = labels;
+            charts.trend.data.datasets[0].data = data;
+            charts.trend.update();
+        }
+
+        // 全域變數：儲存所有學生錯題數據
+        let allStudentErrors = {};
+        let errorDetailCourses = new Set();
+
+        // 更新學生錯題詳細分析
+        function updateStudentErrorDetails(dataToUse = filteredGradings) {
+            const studentErrors = {};
+            errorDetailCourses = new Set();
+
+            console.log('📊 [學生錯題] 開始分析...');
+
+            // 收集每個學生的錯題數據（使用逐題數據）
+            dataToUse.forEach((g, idx) => {
+                const studentKey = g.studentEmail || g.studentName || '未知';
+                const courseId = g.courseId || 'no-course';
+                const courseName = g.courseName || '獨立考試';
+
+                // 記錄課程
+                errorDetailCourses.add(JSON.stringify({
+                    id: courseId,
+                    name: courseName
+                }));
+
+                // 🔥 優先使用 analytics_data.questions（逐題數據）
+                if (g.analytics_data && g.analytics_data.questions && Array.isArray(g.analytics_data.questions)) {
+                    g.analytics_data.questions.forEach(q => {
+                        const finalScore = q.score || q.finalScore || 0;
+                        const maxScore = q.maxScore || 10;
+                        const isCorrect = finalScore >= maxScore * 0.6;
+
+                        // 只記錄答錯的題目
+                        if (!isCorrect) {
+                            if (!studentErrors[studentKey]) {
+                                studentErrors[studentKey] = {
+                                    name: g.studentName || g.studentEmail,
+                                    email: g.studentEmail,
+                                    courseId: courseId,
+                                    courseName: courseName,
+                                    errors: [],
+                                    tagErrors: {}
+                                };
+                            }
+
+                            const tags = q.tags || ['未分類'];
+
+                            // 記錄這次錯誤
+                            studentErrors[studentKey].errors.push({
+                                examTitle: courseName,
+                                questionNum: q.questionNum,
+                                score: finalScore,
+                                maxScore: maxScore,
+                                tags: tags,
+                                courseId: courseId
+                            });
+
+                            // 統計標籤錯誤
+                            tags.forEach(tag => {
+                                if (!studentErrors[studentKey].tagErrors[tag]) {
+                                    studentErrors[studentKey].tagErrors[tag] = {
+                                        count: 0,
+                                        exams: []
+                                    };
+                                }
+                                studentErrors[studentKey].tagErrors[tag].count++;
+                                studentErrors[studentKey].tagErrors[tag].exams.push({
+                                    title: g.courseName || g.examTitle || '未命名',
+                                    questionNum: q.questionNum,
+                                    score: finalScore,
+                                    maxScore: maxScore
+                                });
+                            });
+                        }
+                    });
+                } else if (g.score < 60) {
+                    // 舊格式：整份作業低於60分才記錄
+                    console.log(`  ⚠️ [${idx + 1}] 使用舊格式（整份作業 ${g.score}分）`);
+
+                    if (!studentErrors[studentKey]) {
+                        studentErrors[studentKey] = {
+                            name: g.studentName || g.studentEmail,
+                            email: g.studentEmail,
+                            courseId: courseId,
+                            courseName: courseName,
+                            errors: [],
+                            tagErrors: {}
+                        };
+                    }
+
+                    studentErrors[studentKey].errors.push({
+                        examTitle: courseName,
+                        score: g.score,
+                        tags: g.tags || [],
+                        courseId: courseId
+                    });
+
+                    if (g.tags && Array.isArray(g.tags)) {
+                        g.tags.forEach(tag => {
+                            if (!studentErrors[studentKey].tagErrors[tag]) {
+                                studentErrors[studentKey].tagErrors[tag] = {
+                                    count: 0,
+                                    exams: []
+                                };
+                            }
+                            studentErrors[studentKey].tagErrors[tag].count++;
+                            studentErrors[studentKey].tagErrors[tag].exams.push({
+                                title: courseName,
+                                score: g.score,
+                                courseId: courseId
+                            });
+                        });
+                    }
+                }
+            });
+
+            // 儲存到全域變數
+            allStudentErrors = studentErrors;
+
+            // 初始化篩選器
+            initializeErrorDetailFilters();
+
+            // 預設不顯示任何內容（需要選擇後才顯示）
+            document.getElementById('studentErrorDetails').innerHTML = '<p style="text-align: center; color: #999;">請選擇課程和學生查看詳細分析</p>';
+        }
+
+        // 初始化錯題詳細分析篩選器
+        function initializeErrorDetailFilters() {
+            const courseSelect = document.getElementById('errorDetailCourseFilter');
+            if (!courseSelect) return;
+
+            // 清空並重新載入課程選項
+            courseSelect.innerHTML = '<option value="">所有課程</option>';
+
+            const courses = Array.from(errorDetailCourses).map(str => JSON.parse(str));
+            const uniqueCourses = [];
+            const seenIds = new Set();
+
+            courses.forEach(c => {
+                if (!seenIds.has(c.id)) {
+                    seenIds.add(c.id);
+                    uniqueCourses.push(c);
+                }
+            });
+
+            uniqueCourses
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.id;
+                    option.textContent = course.name;
+                    courseSelect.appendChild(option);
+                });
+
+            console.log(`✅ 初始化課程篩選器: ${uniqueCourses.length} 個課程`);
+        }
+
+        // 更新學生篩選器（根據選擇的課程）
+        function updateErrorDetailFilters() {
+            const courseId = document.getElementById('errorDetailCourseFilter').value;
+            const studentSelect = document.getElementById('errorDetailStudentFilter');
+
+            if (!courseId) {
+                studentSelect.innerHTML = '<option value="">請先選擇課程</option>';
+                document.getElementById('studentErrorDetails').innerHTML = '<p style="text-align: center; color: #999;">請選擇課程和學生查看詳細分析</p>';
+                return;
+            }
+
+            // 篩選該課程的學生
+            const studentsInCourse = Object.entries(allStudentErrors)
+                .filter(([key, student]) => student.courseId === courseId)
+                .map(([key, student]) => ({
+                    key: key,
+                    name: student.name,
+                    errorCount: student.errors.filter(e => e.courseId === courseId).length
+                }))
+                .filter(s => s.errorCount > 0)
+                .sort((a, b) => b.errorCount - a.errorCount);
+
+            studentSelect.innerHTML = '<option value="">選擇學生</option>';
+            studentsInCourse.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.key;
+                option.textContent = `${student.name} (${student.errorCount} 題錯誤)`;
+                studentSelect.appendChild(option);
+            });
+
+            console.log(`✅ 該課程有 ${studentsInCourse.length} 個學生有錯題`);
+
+            document.getElementById('studentErrorDetails').innerHTML = '<p style="text-align: center; color: #999;">請選擇學生查看詳細分析</p>';
+        }
+
+        // 顯示選定學生的錯題詳細分析
+        function updateErrorDetailDisplay() {
+            const studentKey = document.getElementById('errorDetailStudentFilter').value;
+
+            if (!studentKey || !allStudentErrors[studentKey]) {
+                document.getElementById('studentErrorDetails').innerHTML = '<p style="text-align: center; color: #999;">請選擇學生查看詳細分析</p>';
+                return;
+            }
+
+            const student = allStudentErrors[studentKey];
+            const courseId = document.getElementById('errorDetailCourseFilter').value;
+
+            // 篩選該課程的錯題
+            const courseErrors = student.errors.filter(e => !courseId || e.courseId === courseId);
+            const courseTags = {};
+
+            courseErrors.forEach(err => {
+                err.tags.forEach(tag => {
+                    if (!courseTags[tag]) {
+                        courseTags[tag] = {
+                            count: 0,
+                            details: []
+                        };
+                    }
+                    courseTags[tag].count++;
+                    courseTags[tag].details.push(err);
+                });
+            });
+
+            if (Object.keys(courseTags).length === 0) {
+                document.getElementById('studentErrorDetails').innerHTML = '<p style="text-align: center; color: #999;">🎉 該學生在此課程沒有錯題！</p>';
+                return;
+            }
+
+            // 生成標籤錯題項目
+            const tagItems = Object.entries(courseTags)
+                .sort((a, b) => b[1].count - a[1].count)
+                .map(([tag, data]) => {
+                    const detailList = data.details.map(e => {
+                        // 新格式：有題號和分數詳情
+                        if (e.questionNum && e.maxScore) {
+                            return `• ${e.examTitle} - 第${e.questionNum}題 (${e.score}/${e.maxScore}分)`;
+                        }
+                        // 舊格式：只有總分
+                        return `• ${e.examTitle} (${e.score}分)`;
+                    }).join('<br>');
+
+                    return `
+                        <div class="error-tag-item">
+                            <div class="error-tag-name">
+                                ${tag}
+                                <span class="error-tag-count">${data.count} 題錯誤</span>
+                            </div>
+                            <div class="error-tag-exams">
+                                ${detailList || '無具體記錄'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            const html = `
+                <div class="student-error-card">
+                    <div class="student-error-header">
+                        <div class="student-error-name">${student.name}</div>
+                        <div class="student-error-stats">
+                            <span class="error-count">錯誤：${courseErrors.length} 題</span>
+                            <span>標籤：${Object.keys(courseTags).length} 種</span>
+                        </div>
+                    </div>
+                    <div class="error-tags-grid">
+                        ${tagItems || '<p style="color: #999;">無標籤數據</p>'}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('studentErrorDetails').innerHTML = html;
+        }
+
+        // 清除篩選器
+        function clearErrorDetailFilters() {
+            document.getElementById('errorDetailCourseFilter').value = '';
+            document.getElementById('errorDetailStudentFilter').innerHTML = '<option value="">請先選擇課程</option>';
+            document.getElementById('studentErrorDetails').innerHTML = '<p style="text-align: center; color: #999;">請選擇課程和學生查看詳細分析</p>';
+        }
+
+        function updateWeaknessList() {
+            const tagStats = {};
+
+            console.log('📊 開始計算標籤統計... [版本: 2025-10-29-18:00]');
+            console.log('📋 批改記錄總數:', allGradings.length);
+
+            allGradings.forEach((g, idx) => {
+                // 優先使用 analytics_data.questions（逐題數據）
+                if (g.analytics_data && g.analytics_data.questions && Array.isArray(g.analytics_data.questions)) {
+                    console.log(`  ✅ [${idx + 1}] 使用 analytics_data.questions，共 ${g.analytics_data.questions.length} 題`);
+
+                    g.analytics_data.questions.forEach((q, qIdx) => {
+                        const tags = q.tags || ['未分類'];
+                        const finalScore = q.score || q.finalScore || 0; // 使用 score 欄位
+                        const maxScore = q.maxScore || 10;
+                        const isCorrect = finalScore >= maxScore * 0.6; // 60% 以上算對
+
+                        if (idx === 0 && qIdx === 0) {
+                            console.log('  ✅ 第一題數據:', {
+                                題號: q.questionNum || q.questionNumber,
+                                標籤: q.tags,
+                                得分: finalScore,
+                                滿分: maxScore,
+                                是否正確: isCorrect
+                            });
+                        }
+
+                        tags.forEach(tag => {
+                            if (!tagStats[tag]) {
+                                tagStats[tag] = {
+                                    total: 0,
+                                    correct: 0,
+                                    incorrect: 0
+                                };
+                            }
+                            tagStats[tag].total++;
+                            if (isCorrect) {
+                                tagStats[tag].correct++;
+                            } else {
+                                tagStats[tag].incorrect++;
+                            }
+                        });
+                    });
+                } else {
+                    console.log(`  ⚠️ [${idx + 1}] 跳過（無逐題數據，舊格式數據不準確）`);
+                }
+            });
+
+            console.log('📊 標籤統計結果:', tagStats);
+            console.log(`📊 有效記錄: ${allGradings.filter(g => g.analytics_data && g.analytics_data.questions).length}/${allGradings.length} 筆有逐題數據`);
+
+            const weaknesses = Object.entries(tagStats)
+                .map(([tag, stats]) => ({
+                    tag,
+                    total: stats.total,
+                    correct: stats.correct,
+                    incorrect: stats.incorrect,
+                    correctRate: ((stats.correct / stats.total) * 100).toFixed(1)
+                }))
+                .sort((a, b) => a.correctRate - b.correctRate);
+
+            const html = weaknesses.map(w => {
+                // 根據正確率決定顏色
+                let barColor;
+                if (parseFloat(w.correctRate) >= 80) {
+                    barColor = '#4caf50'; // 綠色
+                } else if (parseFloat(w.correctRate) >= 60) {
+                    barColor = '#2196f3'; // 藍色
+                } else if (parseFloat(w.correctRate) >= 40) {
+                    barColor = '#ff9800'; // 橘色
+                } else {
+                    barColor = '#f44336'; // 紅色
+                }
+
+                return `
+                    <div class="weakness-item">
+                        <div class="weakness-tag">${w.tag}</div>
+                        <div class="weakness-bar">
+                            <div class="weakness-fill" style="width: ${w.correctRate}%; background-color: ${barColor};"></div>
+                        </div>
+                        <div class="weakness-stats">
+                            <span class="correct-rate">${w.correctRate}%</span>
+                            <span class="total-count">${w.correct}對 / ${w.incorrect}錯 / 共${w.total}題</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('weaknessList').innerHTML = html || '<p style="text-align: center; color: var(--text-secondary);">暫無數據</p>';
+        }
+
+        function updateRankingList() {
+            const studentScores = {};
+
+            allGradings.forEach(g => {
+                const student = g.studentEmail || g.studentName || '未知';
+                if (!studentScores[student]) {
+                    studentScores[student] = {
+                        total: 0,
+                        count: 0
+                    };
+                }
+                studentScores[student].total += (g.score || 0);
+                studentScores[student].count++;
+            });
+
+            const rankings = Object.entries(studentScores)
+                .map(([student, stats]) => ({
+                    student,
+                    avg: (stats.total / stats.count).toFixed(1),
+                    count: stats.count
+                }))
+                .sort((a, b) => b.avg - a.avg)
+                .slice(0, 10);
+
+            const html = rankings.map((r, index) => `
+                <div class="ranking-item">
+                    <div class="rank-number">#${index + 1}</div>
+                    <div class="rank-info">
+                        <div class="rank-name">${r.student}</div>
+                        <div class="rank-count">${r.count} 次作業</div>
+                    </div>
+                    <div class="rank-score">${r.avg}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('rankingList').innerHTML = html || '<p style="text-align: center; color: var(--text-secondary);">暫無數據</p>';
+        }
+
+        function updateStudentsTable() {
+            const studentScores = {};
+
+            // 統計每個學生的數據
+            allGradings.forEach(g => {
+                const student = g.studentEmail || g.studentName || '未知';
+                if (!studentScores[student]) {
+                    studentScores[student] = {
+                        name: g.studentName || g.studentEmail,
+                        email: g.studentEmail,
+                        scores: [],
+                        total: 0,
+                        count: 0
+                    };
+                }
+                const score = g.score || 0;
+                studentScores[student].scores.push(score);
+                studentScores[student].total += score;
+                studentScores[student].count++;
+            });
+
+            // 計算統計數據
+            const students = Object.values(studentScores).map(s => ({
+                name: s.name,
+                email: s.email,
+                count: s.count,
+                avg: (s.total / s.count).toFixed(1),
+                max: Math.max(...s.scores),
+                min: Math.min(...s.scores)
+            })).sort((a, b) => b.avg - a.avg);
+
+            // 生成表格 HTML
+            const html = students.map(s => {
+                const avgScore = parseFloat(s.avg);
+                let scoreClass = 'low';
+                if (avgScore >= 80) scoreClass = 'high';
+                else if (avgScore >= 60) scoreClass = 'medium';
+
+                return `
+                    <tr>
+                        <td><span class="student-name">${s.name}</span></td>
+                        <td>${s.count}</td>
+                        <td><span class="score-badge ${scoreClass}">${s.avg}</span></td>
+                        <td>${s.max}</td>
+                        <td>${s.min}</td>
+                        <td>
+                            <button class="view-detail-btn" onclick="viewStudentDetail('${s.email}')">
+                                查看詳情
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('studentsTableBody').innerHTML = html || '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 24px;">暫無數據</td></tr>';
+        }
+
+        let currentStudentChart = null;
+
+        function viewStudentDetail(studentEmail) {
+            console.log('📊 查看學生詳情:', studentEmail);
+
+            // 篩選該學生的所有批改記錄
+            const studentGradings = allGradings.filter(g =>
+                (g.studentEmail === studentEmail) || (g.studentName === studentEmail)
+            );
+
+            if (studentGradings.length === 0) {
+                alert('找不到該學生的數據');
+                return;
+            }
+
+            const student = studentGradings[0];
+            const scores = studentGradings.map(g => g.score || 0);
+
+            // 計算統計數據
+            const totalAssignments = studentGradings.length;
+            const avgScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+            const maxScore = Math.max(...scores);
+            const minScore = Math.min(...scores);
+
+            // 更新模態框標題和統計數據
+            document.getElementById('studentDetailTitle').textContent =
+                `${student.studentName || student.studentEmail} - 詳細分析`;
+            document.getElementById('studentTotalAssignments').textContent = totalAssignments;
+            document.getElementById('studentAvgScore').textContent = avgScore;
+            document.getElementById('studentMaxScore').textContent = maxScore;
+            document.getElementById('studentMinScore').textContent = minScore;
+
+            // 統計標籤錯誤（從逐題數據中提取）
+            const tagErrors = {}; // 錯誤題數
+            const tagTotal = {}; // 總題數
+
+            studentGradings.forEach(grading => {
+                // 🔥 優先使用 analytics_data.questions
+                if (grading.analyticsData && grading.analyticsData.questions) {
+                    grading.analyticsData.questions.forEach(q => {
+                        // 🔥 修正：如果標籤是「未分類」，嘗試從 examData 或 examQuestions 取得真實標籤
+                        let actualTags = q.tags || ['未分類'];
+
+                        // 如果是「未分類」，嘗試反向查詢
+                        if (actualTags.length === 1 && actualTags[0] === '未分類') {
+                            const examId = grading.examId;
+                            const questionNum = q.questionNum || q.questionNumber;
+
+                            // 從 examData 查詢
+                            if (examData[examId] && examData[examId].questions) {
+                                const examQuestion = examData[examId].questions[questionNum - 1];
+                                if (examQuestion && examQuestion.tags && examQuestion.tags.length > 0) {
+                                    actualTags = examQuestion.tags;
+                                }
+                            }
+                        }
+
+                        // 以 60% 門檻重新計算正確與否，避免依賴舊資料的 isCorrect
+                        const qFinal = (q.score != null ? q.score : (q.finalScore != null ? q.finalScore : 0));
+                        const qMax = q.maxScore || 10;
+                        const qIsCorrect = qFinal >= (qMax * 0.6);
+
+                        actualTags.forEach(tag => {
+                            tagTotal[tag] = (tagTotal[tag] || 0) + 1;
+                            if (!qIsCorrect) {
+                                tagErrors[tag] = (tagErrors[tag] || 0) + 1;
+                            }
+                        });
+                    });
+                }
+                // 舊格式：從 ai_result.results 提取
+                // ⚠️ 舊格式無法準確取得逐題標籤，只能使用「未分類」或跳過
+                else if (grading.aiResult && grading.aiResult.results) {
+                    console.warn('  ⚠️ 舊格式數據無法準確提取逐題標籤，跳過此記錄');
+                    // 不處理舊格式，避免標籤混亂
+                }
+                // 最舊格式：整個作業的標籤（不推薦，直接跳過）
+                else if (grading.tags && Array.isArray(grading.tags)) {
+                    console.warn('  ⚠️ 最舊格式數據無法準確提取逐題標籤，跳過此記錄');
+                    // 不處理最舊格式，避免標籤混亂
+                }
+            });
+
+            console.log('📊 學生弱點統計:', {
+                tagTotal,
+                tagErrors,
+                hasData: Object.keys(tagTotal).length > 0
+            });
+
+            // 檢查是否有有效數據
+            if (Object.keys(tagTotal).length === 0) {
+                console.warn('⚠️ 此學生沒有有效的逐題標籤數據');
+                // 顯示提示訊息
+                const canvas = document.getElementById('studentWeaknessCanvas');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.font = '14px sans-serif';
+                    ctx.fillStyle = '#999';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('此學生的作業尚未更新為新格式', canvas.width / 2, canvas.height / 2 - 10);
+                    ctx.fillText('請重新批改以生成詳細分析數據', canvas.width / 2, canvas.height / 2 + 10);
+                }
+            } else {
+                // 更新弱點圖表
+                updateStudentWeaknessChart(tagErrors, tagTotal);
+            }
+
+            // 更新詳細錯題分析
+            updateStudentDetailedErrors(studentGradings, tagErrors);
+
+            // 更新作業歷史列表
+            updateStudentAssignmentsList(studentGradings);
+
+            // 生成學習建議
+            generateStudentRecommendations(studentGradings, tagErrors, avgScore);
+
+            // 顯示模態框
+            document.getElementById('studentDetailModal').style.display = 'flex';
+        }
+
+        function updateStudentWeaknessChart(tagErrors, tagTotal) {
+            console.log('📊 更新學生雷達圖:', {
+                tagErrors,
+                tagTotal
+            });
+
+            const canvas = document.getElementById('studentWeaknessCanvas');
+            if (!canvas) {
+                console.error('❌ 找不到 canvas 元素');
+                return;
+            }
+
+            // 確保 canvas 有正確的尺寸
+            canvas.width = canvas.offsetWidth || 600;
+            canvas.height = canvas.offsetHeight || 360;
+
+            const ctx = canvas.getContext('2d');
+
+            // 銷毀舊圖表
+            if (currentStudentChart) {
+                console.log('🔄 銷毀舊雷達圖');
+                currentStudentChart.destroy();
+                currentStudentChart = null;
+            }
+
+            // 準備數據
+            const labels = Object.keys(tagTotal);
+            const errorCounts = labels.map(tag => tagErrors[tag] || 0);
+            const totalCounts = labels.map(tag => tagTotal[tag]);
+            const errorRates = labels.map((tag, i) =>
+                ((errorCounts[i] / totalCounts[i]) * 100).toFixed(1)
+            );
+
+            console.log('📊 雷達圖數據:', {
+                labels: labels,
+                errorCounts: errorCounts,
+                totalCounts: totalCounts,
+                errorRates: errorRates
+            });
+
+            // 縮短標籤文字（保留重點）
+            const shortLabels = labels.map(label => {
+                // 移除括號內的英文說明
+                let short = label.replace(/\([^)]*\)/g, '').trim();
+                // 如果還是太長，只保留前 20 個字
+                if (short.length > 20) {
+                    short = short.substring(0, 20) + '...';
+                }
+                return short;
+            });
+
+            if (labels.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#999';
+                ctx.textAlign = 'center';
+                ctx.fillText('暫無標籤數據', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // 創建新圖表（雷達圖）
+            currentStudentChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: shortLabels,
+                    datasets: [{
+                        label: '錯誤率 (%)',
+                        data: errorRates,
+                        backgroundColor: 'rgba(255, 152, 0, 0.25)',
+                        borderColor: '#ff9800',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#ff9800',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#ff9800',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 20,
+                            right: 20,
+                            bottom: 20,
+                            left: 20
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 13
+                                },
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    return labels[index]; // 顯示完整標籤
+                                },
+                                afterLabel: function(context) {
+                                    const index = context.dataIndex;
+                                    return `錯誤: ${errorCounts[index]} / 總數: ${totalCounts[index]}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                backdropColor: 'transparent',
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 13,
+                                    weight: '500'
+                                },
+                                padding: 10,
+                                color: '#333'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateStudentAssignmentsList(studentGradings) {
+            const sortedGradings = [...studentGradings].sort((a, b) => {
+                const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                return dateB - dateA;
+            });
+
+            const html = sortedGradings.map((g, index) => {
+                // 處理日期格式
+                let dateStr = '未知日期';
+                if (g.createdAt) {
+                    try {
+                        const date = g.createdAt.toDate ? g.createdAt.toDate() : new Date(g.createdAt);
+                        if (!isNaN(date.getTime())) {
+                            dateStr = date.toLocaleDateString('zh-TW', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    } catch (err) {
+                        console.warn('日期轉換失敗:', err);
+                    }
+                }
+
+                // 處理作業標題（優先顯示課程名稱）
+                const title = g.courseName || g.examTitle || g.examId || `作業 #${index + 1}`;
+                const scoreClass = g.score >= 60 ? 'high' : 'low';
+
+                return `
+                    <div class="assignment-item">
+                        <div>
+                            <div class="assignment-title">
+                                ${title}
+                            </div>
+                            <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">
+                                ${dateStr}
+                            </div>
+                        </div>
+                        <div class="assignment-score" style="color: ${scoreClass === 'high' ? '#2e7d32' : '#c62828'}">
+                            ${g.score} 分
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('studentAssignmentsList').innerHTML =
+                html || '<p style="text-align: center; color: #999;">暫無作業記錄</p>';
+        }
+
+        function closeStudentDetail() {
+            document.getElementById('studentDetailModal').style.display = 'none';
+            if (currentStudentChart) {
+                currentStudentChart.destroy();
+                currentStudentChart = null;
+            }
+        }
+
+        // 更新學生詳細錯題分析（優先使用 analytics_data）
+        function updateStudentDetailedErrors(studentGradings, tagErrors) {
+            const errorsByTag = {};
+            const errorsByQuestion = {}; // 用於去重：確保同一題只記錄一次
+            let totalWrongQuestions = 0;
+            let totalQuestions = 0;
+
+            console.log('📊 開始分析學生錯題，共', studentGradings.length, '筆批改記錄');
+
+            // 從每個批改記錄中提取逐題結果
+            studentGradings.forEach((grading, gradingIndex) => {
+                console.log(`  📝 處理批改記錄 [${gradingIndex + 1}/${studentGradings.length}]:`, grading.examTitle);
+
+                // 🔥 優先使用 analytics_data.questions（格式化好的每題數據）
+                if (grading.analyticsData && grading.analyticsData.questions) {
+                    console.log('  ✅ 使用 analytics_data.questions，共', grading.analyticsData.questions.length, '題');
+
+                    grading.analyticsData.questions.forEach((question, idx) => {
+                        totalQuestions++;
+                        // 以 60% 門檻重新計算是否答對，避免舊資料誤判
+                        const qFinal = (question.score != null ? question.score : (question.finalScore != null ? question.finalScore : 0));
+                        const qMax = question.maxScore || 10;
+                        const qIsCorrect = qFinal >= (qMax * 0.6);
+
+                        if (!qIsCorrect) {
+                            totalWrongQuestions++;
+
+                            // 為每個標籤記錄錯誤
+                            question.tags.forEach(tag => {
+                                if (!errorsByTag[tag]) {
+                                    errorsByTag[tag] = [];
+                                }
+
+                                // 使用題目文字作為唯一鍵，避免重複
+                                const questionKey = `${grading.examId}_${question.questionNum}_${question.questionText}`;
+                                if (!errorsByQuestion[questionKey]) {
+                                    errorsByQuestion[questionKey] = true;
+                                    errorsByTag[tag].push({
+                                        examTitle: grading.courseName || grading.examTitle || '未命名考試', // 🔥 優先顯示課程名稱
+                                        questionNum: question.questionNum,
+                                        questionNumber: question.questionNum, // 加上這個欄位（顯示用）
+                                        questionText: question.questionText,
+                                        studentAnswer: question.studentAnswer,
+                                        correctAnswer: question.correctAnswer,
+                                        score: question.score,
+                                        maxScore: question.maxScore,
+                                        gptScore: question.gptScore,
+                                        claudeScore: question.claudeScore,
+                                        tags: question.tags,
+                                        date: grading.createdAt
+                                    });
+                                }
+                            });
+                        }
+                    });
+
+                    return; // 已處理完畢，跳過舊格式解析
+                }
+
+                // ⚠️ 舊格式的兼容處理（沒有 analytics_data 的舊記錄）
+                console.log('  ⚠️ 使用舊格式數據解析');
+                const aiResult = grading.ai_result || grading.aiResult;
+
+                if (!aiResult || !aiResult.results || !Array.isArray(aiResult.results)) {
+                    console.warn('  ⚠️ 沒有 AI 批改結果或結果格式錯誤');
+                    return;
+                }
+
+                console.log('  ✅ 找到', aiResult.results.length, '題的批改結果');
+                const studentAnswers = grading.answers || {};
+
+                // 遍歷每一題
+                aiResult.results.forEach((question, idx) => {
+                    totalQuestions++;
+
+                    // 判斷這題是否答錯（只要不是滿分就算錯）
+                    const maxScore = question.maxScore || 10;
+                    const finalScore = question.finalScore || 0;
+                    const isWrong = finalScore < maxScore;
+
+                    console.log(`    題 ${idx + 1}: ${finalScore}/${maxScore} (${isWrong ? '錯' : '對'})`);
+
+                    if (idx === 0 || (isWrong && totalWrongQuestions === 1)) {
+                        console.log(`    完整 question 物件:`, question);
+                    }
+
+                    if (isWrong) {
+                        totalWrongQuestions++;
+
+                        // 根據實際數據結構，answers 的 key 就是題目文字
+                        // 例如: "7. 請說明 File.ReadAllText() 與 StreamReader 的主要差別。"
+                        // 我們需要找到對應的 key
+
+                        // 嘗試從 studentAnswers 的 keys 中找到匹配的題目
+                        const answerKeys = Object.keys(studentAnswers);
+                        let questionText = `第 ${idx + 1} 題`;
+                        let studentAnswer = '未作答';
+
+                        // 方法1: 直接用題號匹配（假設 key 是 "1. 題目..." 的格式）
+                        const matchedKey = answerKeys.find(key => key.startsWith(`${idx + 1}. `));
+
+                        if (matchedKey) {
+                            questionText = matchedKey;
+                            studentAnswer = studentAnswers[matchedKey] || '未作答';
+                        } else {
+                            // 方法2: 如果沒有匹配，用題號作為索引
+                            const possibleKeys = [
+                                `${idx + 1}. `,
+                                `問題 ${idx + 1}`,
+                                `Q${idx + 1}`,
+                                String(idx + 1)
+                            ];
+
+                            for (const key of possibleKeys) {
+                                const found = answerKeys.find(k => k.includes(key));
+                                if (found) {
+                                    questionText = found;
+                                    studentAnswer = studentAnswers[found] || '未作答';
+                                    break;
+                                }
+                            }
+                        }
+
+                        // 如果 studentAnswer 是物件，嘗試提取 answer 屬性
+                        if (typeof studentAnswer === 'object' && studentAnswer !== null) {
+                            studentAnswer = studentAnswer.answer || studentAnswer.text || JSON.stringify(studentAnswer);
+                        }
+
+                        console.log(`      題目: ${questionText.substring(0, 50)}...`);
+                        console.log(`      學生答案: ${typeof studentAnswer === 'string' ? studentAnswer.substring(0, 30) : studentAnswer}...`);
+
+                        // 提取正確答案
+                        // 1. 從考試定義的 answers 物件中提取（key 是題目文字）
+                        let correctAnswer = '未提供';
+                        if (grading.examData && grading.examData.answers) {
+                            // 嘗試用完整題目文字匹配
+                            correctAnswer = grading.examData.answers[questionText] || '未提供';
+
+                            // 如果沒有匹配，嘗試模糊匹配（去除題號）
+                            if (correctAnswer === '未提供') {
+                                const cleanQuestion = questionText.replace(/^\d+\.\s*/, '');
+                                for (const [key, value] of Object.entries(grading.examData.answers)) {
+                                    const cleanKey = key.replace(/^\d+\.\s*/, '');
+                                    if (cleanKey === cleanQuestion || key === questionText) {
+                                        correctAnswer = value;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        // 2. 從 question 物件提取
+                        if (correctAnswer === '未提供') {
+                            correctAnswer = question.correctAnswer || question.standardAnswer || question.answer || '未提供';
+                        }
+
+                        console.log(`      正確答案: ${typeof correctAnswer === 'string' ? correctAnswer.substring(0, 30) : correctAnswer}...`);
+
+                        // 獲取這題的標籤
+                        // 根據實際數據，question 物件沒有 tags，需要從其他地方獲取
+                        let questionTags = [];
+
+                        // 從整個作業的標籤（如果有）
+                        if (grading.tags && Array.isArray(grading.tags) && grading.tags.length > 0) {
+                            questionTags = grading.tags.filter(tag => tag && tag !== '未分類');
+                        }
+
+                        // 如果還是沒有標籤，歸類到「未分類」
+                        if (questionTags.length === 0) {
+                            questionTags = ['未分類'];
+                        }
+
+                        console.log(`      標籤: ${questionTags.join(', ')}`);
+
+                        // 去重：確保同一題只記錄一次
+                        const uniqueKey = `${grading.examTitle || '未命名考試'}_${idx}`;
+
+                        if (!errorsByQuestion[uniqueKey]) {
+                            errorsByQuestion[uniqueKey] = {
+                                examTitle: grading.examTitle || '未命名考試',
+                                questionNumber: idx + 1,
+                                questionText: questionText,
+                                studentAnswer: studentAnswer,
+                                correctAnswer: correctAnswer,
+                                score: finalScore,
+                                maxScore: maxScore,
+                                gptScore: question.gptScore || '-',
+                                claudeScore: question.claudeScore || '-',
+                                feedback: question.finalFeedback || question.gptFeedback || question.claudeFeedback || '無評語',
+                                date: grading.createdAt,
+                                tags: questionTags
+                            };
+
+                            // 將這題添加到所有相關標籤中
+                            questionTags.forEach(tag => {
+                                if (!errorsByTag[tag]) {
+                                    errorsByTag[tag] = [];
+                                }
+                                errorsByTag[tag].push(errorsByQuestion[uniqueKey]);
+                            });
+                        }
+                    }
+                });
+            });
+
+            console.log('✅ 錯題分析完成: 總共', totalQuestions, '題，錯', totalWrongQuestions, '題');
+            console.log('📊 標籤分布:', Object.keys(errorsByTag));
+
+            // 如果沒有錯題
+            if (totalWrongQuestions === 0) {
+                document.getElementById('studentDetailedErrors').innerHTML = `
+                    <div style="text-align: center; color: #2e7d32; padding: 20px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">🎉</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">完美！所有題目都答對了</div>
+                        <div style="font-size: 13px; color: #6c757d;">共批改 ${totalQuestions} 題，全部正確！</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 按錯誤次數排序
+            const sortedTags = Object.entries(errorsByTag)
+                .sort((a, b) => b[1].length - a[1].length);
+
+            // 截斷過長的文字
+            const truncate = (text, maxLen) => {
+                if (!text) return '-';
+                if (text.length <= maxLen) return text;
+                return text.substring(0, maxLen) + '...';
+            };
+
+            const html = `
+                <div style="margin-bottom: 16px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #ff9800;">
+                    <div style="font-weight: 600; color: #e65100; margin-bottom: 8px;">
+                        📊 錯誤統計：共 ${totalWrongQuestions} 題答錯（總共 ${totalQuestions} 題）
+                    </div>
+                    <div style="font-size: 13px; color: #6c757d;">
+                        涉及 ${sortedTags.length} 種標籤類型，錯誤率 ${((totalWrongQuestions / totalQuestions) * 100).toFixed(1)}%
+                    </div>
+                </div>
+
+                ${sortedTags.map(([tag, errors]) => `
+                    <div style="margin-bottom: 16px; padding: 12px; background: white; border-radius: 6px; border: 1px solid #e0e0e0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f5f5f5;">
+                            <div style="font-weight: 600; color: #e65100; font-size: 15px;">🏷️ ${tag}</div>
+                            <div style="background: #ff9800; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                ${errors.length} 題錯誤
+                            </div>
+                        </div>
+                        <div>
+                            ${errors.map(e => {
+                                let dateStr = '未知日期';
+                                if (e.date) {
+                                    try {
+                                        const date = e.date.toDate ? e.date.toDate() : new Date(e.date);
+                                        if (!isNaN(date.getTime())) {
+                                            dateStr = date.toLocaleDateString('zh-TW');
+                                        }
+                                    } catch (err) {}
+                                }
+                                return `
+                                    <div style="padding: 12px; background: #fff5f5; border: 1px solid #ffcdd2; border-radius: 6px; margin-bottom: 8px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                            <div style="font-weight: 600; color: #212529;">${e.examTitle} - 第 ${e.questionNumber} 題</div>
+                                            <div style="display: flex; gap: 8px; align-items: center;">
+                                                <span style="font-size: 11px; color: #999;">${dateStr}</span>
+                                                <span style="font-weight: 600; color: #d32f2f; font-size: 14px;">${e.score}/${e.maxScore} 分</span>
+                                            </div>
+                                        </div>
+                                        <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                            <div style="font-size: 11px; color: #999; margin-bottom: 4px;">📝 題目</div>
+                                            <div style="font-size: 13px; color: #424242;">${truncate(e.questionText, 100)}</div>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                                            <div style="padding: 8px; background: #ffebee; border-radius: 4px; border-left: 3px solid #f44336;">
+                                                <div style="font-size: 11px; color: #c62828; margin-bottom: 4px; font-weight: 600;">❌ 學生答案</div>
+                                                <div style="font-size: 12px; color: #424242;">${truncate(e.studentAnswer, 50)}</div>
+                                            </div>
+                                            <div style="padding: 8px; background: #e8f5e9; border-radius: 4px; border-left: 3px solid #4caf50;">
+                                                <div style="font-size: 11px; color: #2e7d32; margin-bottom: 4px; font-weight: 600;">✓ 正確答案</div>
+                                                <div style="font-size: 12px; color: #424242;">${truncate(e.correctAnswer, 50)}</div>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; gap: 8px; font-size: 11px; color: #6c757d;">
+                                            <span>GPT: ${e.gptScore || '-'} 分</span>
+                                            <span>•</span>
+                                            <span>Claude: ${e.claudeScore || '-'} 分</span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+
+            document.getElementById('studentDetailedErrors').innerHTML = html;
+        }
+
+        // 生成學習建議
+        function generateStudentRecommendations(studentGradings, tagErrors, avgScore) {
+            const recommendations = [];
+
+            // 1. 整體表現評估
+            if (avgScore >= 80) {
+                recommendations.push({
+                    icon: '🌟',
+                    type: 'success',
+                    title: '整體表現優異',
+                    content: `平均分數達到 ${avgScore} 分，表現非常出色！建議繼續保持學習節奏，可以挑戰更高難度的題目。`
+                });
+            } else if (avgScore >= 60) {
+                recommendations.push({
+                    icon: '📈',
+                    type: 'info',
+                    title: '整體表現良好',
+                    content: `平均分數 ${avgScore} 分，有進步空間。建議針對弱點標籤進行加強練習。`
+                });
+            } else {
+                recommendations.push({
+                    icon: '⚠️',
+                    type: 'warning',
+                    title: '需要加強',
+                    content: `平均分數 ${avgScore} 分，建議安排額外的輔導時間，重點複習基礎概念。`
+                });
+            }
+
+            // 2. 弱點標籤建議
+            const weakTags = Object.entries(tagErrors)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+
+            if (weakTags.length > 0) {
+                const tagList = weakTags.map(([tag, count]) => `• ${tag} (錯誤 ${count} 次)`).join('<br>');
+                recommendations.push({
+                    icon: '🎯',
+                    type: 'primary',
+                    title: '重點改進方向',
+                    content: `以下標籤錯誤率較高，建議優先加強：<br><div style="margin-top: 8px; padding: 12px; background: rgba(255, 255, 255, 0.7); border-radius: 4px;">${tagList}</div>`
+                });
+            }
+
+            // 3. 學習進度分析
+            const recentGradings = [...studentGradings]
+                .sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                    const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                    return dateB - dateA;
+                })
+                .slice(0, 5);
+
+            if (recentGradings.length >= 3) {
+                const recentScores = recentGradings.map(g => g.score);
+                const trend = recentScores[0] - recentScores[recentScores.length - 1];
+
+                if (trend > 10) {
+                    recommendations.push({
+                        icon: '📊',
+                        type: 'success',
+                        title: '學習進步中',
+                        content: `最近的作業表現呈上升趨勢（+${trend.toFixed(1)} 分），請繼續保持！`
+                    });
+                } else if (trend < -10) {
+                    recommendations.push({
+                        icon: '📉',
+                        type: 'warning',
+                        title: '需要關注',
+                        content: `最近的作業表現有下降趨勢（${trend.toFixed(1)} 分），建議與學生溝通了解原因。`
+                    });
+                }
+            }
+
+            // 4. 作業完成度
+            const errorRate = (studentGradings.filter(g => g.score < 60).length / studentGradings.length) * 100;
+            if (errorRate > 50) {
+                recommendations.push({
+                    icon: '💪',
+                    type: 'info',
+                    title: '加強練習',
+                    content: `錯誤率達 ${errorRate.toFixed(1)}%，建議增加練習題目，特別是基礎題型。`
+                });
+            }
+
+            // 渲染建議
+            const html = recommendations.map(r => {
+                const colors = {
+                    success: {
+                        bg: '#e8f5e9',
+                        border: '#4caf50',
+                        text: '#2e7d32'
+                    },
+                    info: {
+                        bg: '#e3f2fd',
+                        border: '#2196f3',
+                        text: '#1565c0'
+                    },
+                    warning: {
+                        bg: '#fff3e0',
+                        border: '#ff9800',
+                        text: '#e65100'
+                    },
+                    primary: {
+                        bg: '#f3e5f5',
+                        border: '#9c27b0',
+                        text: '#6a1b9a'
+                    }
+                };
+                const color = colors[r.type] || colors.info;
+
+                return `
+                    <div style="padding: 16px; background: ${color.bg}; border-left: 4px solid ${color.border}; border-radius: 6px; margin-bottom: 12px;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <div style="font-size: 24px; line-height: 1;">${r.icon}</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: ${color.text}; font-size: 15px; margin-bottom: 6px;">
+                                    ${r.title}
+                                </div>
+                                <div style="font-size: 13px; color: #616161; line-height: 1.6;">
+                                    ${r.content}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('studentRecommendations').innerHTML = html || `
+                <div style="text-align: center; color: #999; padding: 20px;">
+                    暫無建議
+                </div>
+            `;
+        }
+
+
+        function applyFilters() {
+            renderAnalytics();
+        }
+
+        function exportAnalyticsReport() {
+            alert('匯出分析報告功能開發中');
+        }
+
+        // 登出功能
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
+            try {
+                await auth.signOut();
+                window.location.href = '../dashboard.html';
+            } catch (error) {
+                console.error('登出失敗:', error);
+            }
+        });
+    </script>
+
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

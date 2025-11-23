@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儀表板 - 教育管理系統</title>
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/mobile.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="5" width="14" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M3 8h14M7 5v-2M13 5v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">教育管理系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="dashboard.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="teacher/question.html" class="nav-item" id="navQuestions">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>題庫管理</span>
+                    </a>
+                    <a href="teacher/exam.html" class="nav-item" id="navExams">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試管理</span>
+                    </a>
+                    <a href="teacher/course.html" class="nav-item" id="navCourses">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>課程管理</span>
+                    </a>
+                    <a href="teacher/grading.html" class="nav-item" id="navGrading">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>作業批改</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">分析與設定</div>
+                    <a href="teacher/analytic.html" class="nav-item" id="navAnalytics">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 14v-4M10 14V8M16 14v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>數據分析</span>
+                    </a>
+                    <a href="teacher/ai-assistant.html" class="nav-item" id="navAIAssistant">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 2L3 6v8l7 4 7-4V6l-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            <path d="M10 6v8M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>AI 助理</span>
+                    </a>
+                    <a href="teacher/setting.html" class="nav-item" id="navSettings">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 2v2M10 16v2M18 10h-2M6 10H4M15.66 4.34l-1.41 1.41M5.75 14.25l-1.41 1.41M15.66 15.66l-1.41-1.41M5.75 5.75L4.34 4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>系統設定</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <h1 class="page-title">儀表板</h1>
+                <div class="header-actions">
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">載入中...</div>
+                            <div class="user-role" id="userRole">載入中...</div>
+                        </div>
+                        <div class="user-avatar" id="userAvatar">
+                            <span id="avatarText">U</span>
+                        </div>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn">登出</button>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 歡迎橫幅 -->
+                <div class="welcome-banner">
+                    <div class="welcome-content">
+                        <h1>歡迎回來，<span id="welcomeUserName">使用者</span>！</h1>
+                        <p>這是您的教育管理中心，讓我們開始今天的工作</p>
+                    </div>
+                </div>
+
+                <!-- 統計卡片 -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="statQuestions">0</div>
+                        <div class="stat-label">題目總數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="statExams">0</div>
+                        <div class="stat-label">考試總數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="statSubmissions">0</div>
+                        <div class="stat-label">提交總數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon teal">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="statStudents">0</div>
+                        <div class="stat-label">學生人數</div>
+                    </div>
+                </div>
+
+                <!-- 內容網格 -->
+                <div class="content-grid">
+                    <!-- 最近活動 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">最近活動</h2>
+                            <a href="#" class="card-action">查看全部</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="activity-list" id="activityList">
+                                <div class="activity-item">
+                                    <div class="activity-icon-wrapper">
+                                        <svg viewBox="0 0 20 20" fill="none">
+                                            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 0v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">成功登入系統</div>
+                                        <div class="activity-time">剛剛</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右側欄 -->
+                    <div>
+                        <!-- 快速操作 -->
+                        <div class="card mb-24">
+                            <div class="card-header">
+                                <h2 class="card-title">快速操作</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="quick-actions-grid" id="quickActionsGrid">
+                                    <a href="teacher/question.html" class="quick-action-btn">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        <span>新增題目</span>
+                                    </a>
+                                    <a href="teacher/exam.html" class="quick-action-btn">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <rect x="5" y="4" width="14" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                                            <path d="M9 9h6M9 13h6M9 17h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        <span>建立考試</span>
+                                    </a>
+                                    <a href="teacher/grading.html" class="quick-action-btn">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        <span>批改作業</span>
+                                    </a>
+                                    <a href="teacher/analytic.html" class="quick-action-btn">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        <span>查看分析</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 系統狀態 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">系統狀態</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="status-list">
+                                    <div class="status-item">
+                                        <span class="status-label">Firebase 連接</span>
+                                        <span class="status-value" id="firebaseStatus">
+                                            <span class="status-indicator"></span> 正常
+                                        </span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">資料庫狀態</span>
+                                        <span class="status-value" id="databaseStatus">
+                                            <span class="status-indicator"></span> 正常
+                                        </span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">上次登入</span>
+                                        <span class="status-value" id="lastLoginTime">載入中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
+
+        // 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // 全域變數
+        let dashboardUser = null;
+        let dashboardUserRole = null;
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📋 儀表板頁面載入中...');
+            initializeDashboard();
+        });
+
+        // 初始化儀表板
+        async function initializeDashboard() {
+            try {
+                console.log('🔄 開始初始化儀表板...');
+
+                // 檢查使用者登入狀態
+                await checkDashboardAuthState();
+
+                // 載入使用者資料
+                await loadDashboardUserData();
+
+                // 載入統計資料
+                await loadDashboardStatistics();
+
+                // 載入快速操作
+                loadDashboardQuickActions();
+
+                // 載入最近活動
+                await loadDashboardRecentActivity();
+
+                // 檢查系統狀態
+                checkDashboardSystemStatus();
+
+                // 隱藏載入畫面，顯示主內容
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'flex';
+
+                console.log('✅ 儀表板初始化完成');
+
+            } catch (error) {
+                console.error('❌ 儀表板初始化失敗:', error);
+                showErrorAndRedirect('初始化失敗，請重新登入', 'index.html');
+            }
+        }
+
+        // 檢查身份驗證狀態
+        function checkDashboardAuthState() {
+            return new Promise((resolve, reject) => {
+                if (typeof firebase === 'undefined') {
+                    reject(new Error('Firebase 未載入'));
+                    return;
+                }
+
+                firebase.auth().onAuthStateChanged(function(user) {
+                    if (user) {
+                        dashboardUser = user;
+                        console.log('✅ 使用者已登入:', user.email);
+                        resolve(user);
+                    } else {
+                        console.log('❌ 使用者未登入，重導向到登入頁面');
+                        window.location.href = 'index.html';
+                        reject(new Error('使用者未登入'));
+                    }
+                });
+            });
+        }
+
+        // 載入使用者資料
+        async function loadDashboardUserData() {
+            try {
+                if (!dashboardUser) {
+                    throw new Error('無使用者資訊');
+                }
+
+                console.log('📝 載入使用者資料:', dashboardUser.uid);
+
+                // 檢查 Firebase 是否正確初始化
+                if (typeof db === 'undefined' || !db) {
+                    throw new Error('Firebase Firestore 未初始化');
+                }
+
+                // 首先嘗試從 user_settings 載入自訂名稱
+                let displayName = dashboardUser.displayName || dashboardUser.email;
+                let userPhotoURL = dashboardUser.photoURL;
+
+                try {
+                    const settingsDoc = await db.collection('user_settings').doc(dashboardUser.uid).get();
+                    if (settingsDoc.exists) {
+                        const settings = settingsDoc.data();
+                        if (settings.profile && settings.profile.displayName) {
+                            displayName = settings.profile.displayName;
+                        }
+                    }
+                } catch (settingsError) {
+                    console.log('⚠️ 無法載入自訂設定，使用預設名稱:', settingsError);
+                }
+
+                // 載入使用者基本資料
+                console.log('📥 正在從 Firestore 載入使用者文檔...');
+                const userDoc = await db.collection('users').doc(dashboardUser.uid).get();
+
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    dashboardUserRole = userData.role;
+
+                    console.log('✅ 使用者資料載入成功:', {
+                        uid: dashboardUser.uid,
+                        email: dashboardUser.email,
+                        role: userData.role
+                    });
+
+                    // 更新 UI - 優先使用自訂名稱
+                    document.getElementById('userName').textContent = displayName;
+                    document.getElementById('userRole').textContent = userData.role === 'teacher' ? '教師' : '學生';
+                    document.getElementById('welcomeUserName').textContent = displayName;
+
+                    // 更新頭像 - 優先使用自訂頭像
+                    const avatarElement = document.getElementById('userAvatar');
+                    if (userPhotoURL) {
+                        avatarElement.innerHTML = `<img src="${userPhotoURL}" alt="使用者頭像">`;
+                    } else {
+                        const initial = displayName.charAt(0);
+                        document.getElementById('avatarText').textContent = initial;
+                    }
+
+                    // 設定上次登入時間
+                    if (userData.lastLoginAt) {
+                        const lastLogin = userData.lastLoginAt.toDate();
+                        document.getElementById('lastLoginTime').textContent = formatDateTime(lastLogin);
+                    }
+
+                    // 根據角色顯示不同的導航
+                    updateNavigationForRole(userData.role);
+
+                    console.log('✅ 使用者資料載入完成');
+                } else {
+                    // 使用者資料不存在，嘗試自動創建
+                    console.warn('⚠️ 找不到使用者資料，嘗試自動創建...');
+                    await createMissingUserData(dashboardUser);
+
+                    // 重新載入
+                    console.log('🔄 重新載入使用者資料...');
+                    return await loadDashboardUserData();
+                }
+            } catch (error) {
+                console.error('❌ 載入使用者資料失敗:', error);
+                console.error('📋 錯誤詳情:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+                throw error;
+            }
+        }
+
+        // 自動創建缺失的使用者資料
+        async function createMissingUserData(user) {
+            try {
+                console.log('🔧 正在創建使用者資料...');
+
+                const userData = {
+                    email: user.email,
+                    displayName: user.displayName || user.email.split('@')[0],
+                    role: 'teacher', // 預設為教師
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    photoURL: user.photoURL || null
+                };
+
+                await db.collection('users').doc(user.uid).set(userData);
+                console.log('✅ 使用者資料創建成功');
+
+                return userData;
+            } catch (error) {
+                console.error('❌ 創建使用者資料失敗:', error);
+                throw new Error('無法創建使用者資料：' + error.message);
+            }
+        }
+
+        // 根據角色更新導航
+        function updateNavigationForRole(role) {
+            if (role === 'student') {
+                // 更新導航連結為學生版本
+                document.getElementById('navQuestions').href = 'student/exam.html';
+                document.getElementById('navQuestions').querySelector('span').textContent = '參加考試';
+
+                document.getElementById('navExams').href = 'student/course.html';
+                document.getElementById('navExams').querySelector('span').textContent = '我的課程';
+
+                document.getElementById('navCourses').href = 'student/assignment.html';
+                document.getElementById('navCourses').querySelector('span').textContent = '我的作業';
+
+                document.getElementById('navGrading').href = 'student/result.html';
+                document.getElementById('navGrading').querySelector('span').textContent = '查看成績';
+
+                document.getElementById('navAnalytics').href = 'student/profile.html';
+                document.getElementById('navAnalytics').querySelector('span').textContent = '個人檔案';
+
+                document.getElementById('navSettings').style.display = 'none';
+            }
+        }
+
+        // 載入統計資料
+        async function loadDashboardStatistics() {
+            try {
+                if (dashboardUserRole === 'teacher') {
+                    // 教師統計
+                    const [questionsSnapshot, examsSnapshot, resultsSnapshot] = await Promise.all([
+                        db.collection('questions').where('createdBy', '==', dashboardUser.uid).get(),
+                        db.collection('exams').where('createdBy', '==', dashboardUser.uid).get(),
+                        db.collection('examResults').where('teacherId', '==', dashboardUser.uid).get()
+                    ]);
+
+                    document.getElementById('statQuestions').textContent = questionsSnapshot.size;
+                    document.getElementById('statExams').textContent = examsSnapshot.size;
+                    document.getElementById('statSubmissions').textContent = resultsSnapshot.size;
+                    document.getElementById('statStudents').textContent = new Set(resultsSnapshot.docs.map(doc => doc.data().studentId)).size;
+
+                } else {
+                    // 學生統計
+                    const resultsSnapshot = await db.collection('examResults')
+                        .where('studentId', '==', dashboardUser.uid)
+                        .get();
+
+                    let totalScore = 0;
+                    let totalMaxScore = 0;
+                    let completedExams = resultsSnapshot.size;
+
+                    resultsSnapshot.forEach(doc => {
+                        const result = doc.data();
+                        totalScore += result.score || 0;
+                        totalMaxScore += result.totalPoints || 0;
+                    });
+
+                    const averageScore = totalMaxScore > 0 ? Math.round((totalScore / totalMaxScore) * 100) : 0;
+
+                    document.getElementById('statQuestions').textContent = completedExams;
+                    document.querySelector('#statQuestions').nextElementSibling.textContent = '完成考試';
+
+                    document.getElementById('statExams').textContent = averageScore + '%';
+                    document.querySelector('#statExams').nextElementSibling.textContent = '平均分數';
+
+                    document.getElementById('statSubmissions').textContent = totalScore;
+                    document.querySelector('#statSubmissions').nextElementSibling.textContent = '總得分';
+
+                    document.getElementById('statStudents').textContent = 'A';
+                    document.querySelector('#statStudents').nextElementSibling.textContent = '平均等級';
+                }
+
+                console.log('✅ 統計資料載入完成');
+
+            } catch (error) {
+                console.error('❌ 載入統計資料失敗:', error);
+            }
+        }
+
+        // 載入快速操作
+        function loadDashboardQuickActions() {
+            const quickActionsGrid = document.getElementById('quickActionsGrid');
+
+            if (dashboardUserRole === 'student') {
+                quickActionsGrid.innerHTML = `
+                    <a href="student/exam.html" class="quick-action-btn">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>參加考試</span>
+                    </a>
+                    <a href="student/course.html" class="quick-action-btn">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>我的課程</span>
+                    </a>
+                    <a href="student/assignment.html" class="quick-action-btn">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>我的作業</span>
+                    </a>
+                    <a href="student/result.html" class="quick-action-btn">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>查看成績</span>
+                    </a>
+                `;
+            }
+        }
+
+        // 載入最近活動
+        async function loadDashboardRecentActivity() {
+            const activityList = document.getElementById('activityList');
+
+            try {
+                const activities = [{
+                    title: '成功登入系統',
+                    time: new Date()
+                }, {
+                    title: '載入使用者統計資料',
+                    time: new Date(Date.now() - 60000)
+                }];
+
+                activityList.innerHTML = activities.map(activity => `
+                    <div class="activity-item">
+                        <div class="activity-icon-wrapper">
+                            <svg viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 0v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">${activity.title}</div>
+                            <div class="activity-time">${formatTimeAgo(activity.time)}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('❌ 載入活動記錄失敗:', error);
+            }
+        }
+
+        // 檢查系統狀態
+        function checkDashboardSystemStatus() {
+            // 資料庫狀態
+            if (typeof db !== 'undefined') {
+                db.collection('test').limit(1).get()
+                    .then(() => {
+                        console.log('✅ 資料庫連接正常');
+                    })
+                    .catch(() => {
+                        const statusIndicator = document.querySelector('#databaseStatus .status-indicator');
+                        statusIndicator.classList.add('warning');
+                        document.getElementById('databaseStatus').innerHTML = '<span class="status-indicator warning"></span>異常';
+                    });
+            }
+        }
+
+        // 登出功能
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
+            try {
+                await firebase.auth().signOut();
+                console.log('✅ 登出成功');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('❌ 登出失敗:', error);
+                alert('登出失敗，請重試');
+            }
+        });
+
+        // 錯誤處理和重導向
+        function showErrorAndRedirect(message, redirectUrl) {
+            alert(message);
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 2000);
+        }
+
+        // 工具函數
+        function formatDateTime(date) {
+            return date.toLocaleString('zh-TW', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+
+            if (minutes < 1) return '剛剛';
+            if (minutes < 60) return `${minutes} 分鐘前`;
+
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} 小時前`;
+
+            const days = Math.floor(hours / 24);
+            return `${days} 天前`;
+        }
+    </script>
+
+    <!-- 手機選單控制 -->
+    <script src="assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

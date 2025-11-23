@@ -1,0 +1,287 @@
+/* 批改頁面手機版優化 */
+
+@media (max-width: 768px) {
+    /* 作業卡片 */
+    .submission-card,
+    .exam-card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .submission-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .submission-title {
+        font-size: 16px;
+    }
+
+    .submission-meta {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .meta-item {
+        font-size: 13px;
+    }
+
+    /* 批改按鈕組 */
+    .action-buttons,
+    .submission-actions {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .action-buttons .btn,
+    .submission-actions .btn {
+        width: 100%;
+    }
+
+    /* AI 批改模態框 */
+    .ai-grading-modal .modal-content {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .ai-grading-modal .modal-body {
+        max-height: calc(100vh - 140px);
+        padding: 12px;
+    }
+
+    /* 批改日誌 */
+    .grading-log {
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    .log-entry {
+        padding: 8px;
+        margin-bottom: 8px;
+    }
+
+    /* 題目卡片 */
+    .question-card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .question-title {
+        font-size: 14px;
+    }
+
+    .question-content {
+        font-size: 13px;
+    }
+
+    /* 分數顯示 */
+    .score-display {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .score-item {
+        width: 100%;
+    }
+
+    .score-number {
+        font-size: 32px;
+    }
+
+    /* 批改報告 */
+    .grading-report {
+        padding: 12px;
+    }
+
+    .report-section {
+        margin-bottom: 16px;
+    }
+
+    .report-title {
+        font-size: 16px;
+    }
+
+    /* 共識資訊 */
+    .consensus-info {
+        padding: 12px;
+    }
+
+    .consensus-details {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .agent-score {
+        width: 100%;
+        padding: 12px;
+    }
+
+    /* 仲裁資訊 */
+    .arbitration-section {
+        padding: 12px;
+    }
+
+    /* 標籤 */
+    .tag-list {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .tag {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+
+    /* 篩選欄 */
+    .filter-bar {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+        width: 100%;
+    }
+
+    /* 批量操作 */
+    .bulk-actions {
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .bulk-actions .btn {
+        width: 100%;
+    }
+
+    /* 勾選框 */
+    .submission-checkbox {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* 進度條 */
+    .progress-container {
+        margin: 12px 0;
+    }
+
+    .progress-bar {
+        height: 8px;
+    }
+
+    .progress-text {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* 作業列表 */
+    .submissions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* 簡化 Meta 資訊 */
+    .submission-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* 評分表格 */
+    .grading-table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .grading-table table {
+        min-width: 500px;
+        font-size: 12px;
+    }
+
+    /* AI 批改步驟 */
+    .ai-steps {
+        font-size: 12px;
+    }
+
+    .step-item {
+        padding: 8px;
+    }
+
+    /* 批改統計 */
+    .grading-stats {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .stat-box {
+        padding: 10px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+
+    .stat-label {
+        font-size: 11px;
+    }
+
+    /* 模態框標題 */
+    .modal-title {
+        font-size: 16px;
+    }
+
+    /* 按鈕文字縮短 */
+    .btn-text-mobile {
+        display: none;
+    }
+
+    /* 日誌滾動 */
+    .log-container {
+        max-height: 300px;
+    }
+}
+
+/* 橫向模式優化 */
+@media (max-height: 600px) and (orientation: landscape) {
+    .ai-grading-modal .modal-content {
+        height: 100vh;
+    }
+
+    .ai-grading-modal .modal-body {
+        max-height: calc(100vh - 100px);
+    }
+
+    .log-container {
+        max-height: 200px;
+    }
+
+    .grading-report {
+        padding: 8px;
+    }
+}
+
+/* 列印樣式 */
+@media print {
+    .action-buttons,
+    .submission-actions,
+    .bulk-actions,
+    .filter-bar,
+    .submission-checkbox {
+        display: none !important;
+    }
+
+    .grading-report {
+        page-break-inside: avoid;
+    }
+
+    .question-card {
+        page-break-inside: avoid;
+        border: 1px solid #ddd;
+        margin-bottom: 16px;
+    }
+}
+

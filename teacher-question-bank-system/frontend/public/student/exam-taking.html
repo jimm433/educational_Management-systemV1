@@ -1,0 +1,593 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考試作答 - 學生系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/student.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <style>
+        .exam-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .exam-timer {
+            position: sticky;
+            top: 20px;
+            background: white;
+            border: 2px solid #4299e1;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .timer-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4299e1;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .timer-display.warning {
+            color: #ed8936;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        .timer-display.danger {
+            color: #f56565;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #4299e1;
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .question-number {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .question-score {
+            font-size: 0.9rem;
+            color: #718096;
+            background: #edf2f7;
+            padding: 4px 12px;
+            border-radius: 6px;
+        }
+        
+        .question-text {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #2d3748;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+        
+        .answer-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        .answer-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+        
+        .choice-option {
+            display: block;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .choice-option:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        
+        .choice-option input[type="radio"],
+        .choice-option input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        
+        .choice-option.selected {
+            background: #ebf8ff;
+            border-color: #4299e1;
+        }
+        
+        .submit-section {
+            position: sticky;
+            bottom: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .progress-info {
+            font-size: 0.95rem;
+            color: #718096;
+        }
+        
+        .question-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .question-nav-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .question-nav-btn:hover {
+            border-color: #4299e1;
+        }
+        
+        .question-nav-btn.answered {
+            background: #c6f6d5;
+            border-color: #48bb78;
+        }
+        
+        .question-nav-btn.current {
+            background: #4299e1;
+            color: white;
+            border-color: #4299e1;
+        }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入考試中...</p>
+        </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 考試內容 -->
+        <div class="exam-container">
+            <!-- 倒數計時器 -->
+            <div class="exam-timer">
+                <div style="font-size: 0.9rem; color: #718096; margin-bottom: 5px;">剩餘時間</div>
+                <div class="timer-display" id="timerDisplay">60:00</div>
+        </div>
+
+            <!-- 題目導航 -->
+            <div class="section-card">
+                <h3 style="margin-bottom: 15px;">題目導航</h3>
+                <div class="question-nav" id="questionNav">
+                    <!-- 動態生成 -->
+                </div>
+            </div>
+
+            <!-- 題目列表 -->
+            <div id="questionsList">
+                <!-- 動態生成 -->
+            </div>
+
+            <!-- 提交區域 -->
+            <div class="submit-section">
+                <div class="progress-info">
+                    <span id="answeredCount">0</span> / <span id="totalCount">0</span> 題已作答
+            </div>
+                <button class="btn btn-primary btn-lg" onclick="submitExam()">提交考試</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/firebase-config.js"></script>
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script>
+        console.log('📝 考試作答頁面載入中...');
+
+        let currentUser = null;
+        let examId = null;
+        let examData = null;
+        let questions = [];
+        let answers = {};
+        let timerInterval = null;
+        let remainingSeconds = 0;
+
+        // 從 URL 獲取考試 ID
+                const urlParams = new URLSearchParams(window.location.search);
+        examId = urlParams.get('examId');
+
+                if (!examId) {
+            alert('缺少考試 ID');
+            window.history.back();
+        }
+
+        // 頁面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        // 防止頁面重新整理
+        window.addEventListener('beforeunload', function(e) {
+            if (timerInterval) {
+                e.preventDefault();
+                e.returnValue = '您的考試尚未提交，確定要離開嗎？';
+            }
+        });
+
+        async function initializePage() {
+            try {
+                // Firebase 已經在 firebase-config.js 中初始化
+                // 直接使用全域的 auth 和 db
+
+                // 檢查登入狀態
+                await checkAuth();
+
+                // 載入考試資料
+                await loadExamData();
+
+                // 載入題目
+                await loadQuestions();
+
+                // 渲染題目
+                renderQuestions();
+
+                // 啟動計時器
+                startTimer();
+
+                // 隱藏載入畫面
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                console.log('✅ 考試作答頁面初始化完成');
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+                alert('初始化失敗：' + error.message);
+                window.history.back();
+            }
+        }
+
+        function checkAuth() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        console.log('✅ 使用者已登入:', user.email);
+                        resolve();
+                    } else {
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        async function loadExamData() {
+            try {
+                console.log('📝 載入考試資料:', examId);
+
+                const examDoc = await db.collection('exams').doc(examId).get();
+
+                if (!examDoc.exists) {
+                    throw new Error('考試不存在');
+                }
+
+                examData = {
+                    id: examDoc.id,
+                    ...examDoc.data()
+                };
+
+                console.log('✅ 考試資料:', examData);
+
+                // 設定剩餘時間（分鐘轉秒）
+                remainingSeconds = (examData.duration || 60) * 60;
+
+                document.title = `${examData.title || '考試'} - 作答中`;
+
+            } catch (error) {
+                console.error('❌ 載入考試資料失敗:', error);
+                throw error;
+            }
+        }
+
+        async function loadQuestions() {
+            try {
+                console.log('📚 載入題目...');
+
+                // 從考試資料中獲取題目
+                if (examData.questions && examData.questions.length > 0) {
+                    questions = examData.questions;
+                } else if (examData.questionIds && examData.questionIds.length > 0) {
+                    // 從題庫載入題目
+                    for (const questionId of examData.questionIds) {
+                        const questionDoc = await db.collection('questions').doc(questionId).get();
+                        if (questionDoc.exists) {
+                            questions.push({
+                                id: questionDoc.id,
+                                ...questionDoc.data()
+                            });
+                        }
+                    }
+                } else {
+                    throw new Error('考試沒有題目');
+                }
+
+                console.log('✅ 載入了', questions.length, '題');
+
+                // 初始化答案物件
+                questions.forEach((q, index) => {
+                    answers[index] = '';
+                });
+
+            } catch (error) {
+                console.error('❌ 載入題目失敗:', error);
+                throw error;
+            }
+        }
+
+        function renderQuestions() {
+            const questionsList = document.getElementById('questionsList');
+            const questionNav = document.getElementById('questionNav');
+
+            document.getElementById('totalCount').textContent = questions.length;
+
+            let questionsHtml = '';
+            let navHtml = '';
+
+            questions.forEach((question, index) => {
+                const questionNumber = index + 1;
+
+                // 題目導航按鈕
+                navHtml += `
+                    <button class="question-nav-btn" id="navBtn${index}" onclick="scrollToQuestion(${index})">
+                        ${questionNumber}
+                    </button>
+                `;
+
+                // 題目卡片
+                questionsHtml += `
+                    <div class="question-card" id="question${index}">
+                        <div class="question-header">
+                            <div class="question-number">第 ${questionNumber} 題</div>
+                            <div class="question-score">${question.points || 10} 分</div>
+                        </div>
+                        <div class="question-text">${question.question || question.text || question.content}</div>
+                        ${renderAnswerInput(question, index)}
+                    </div>
+                `;
+            });
+
+            questionsList.innerHTML = questionsHtml;
+            questionNav.innerHTML = navHtml;
+        }
+
+        function renderAnswerInput(question, index) {
+            const type = question.type || 'text';
+
+            switch (type) {
+                case 'multiple':
+                case 'choice':
+                    // 選擇題
+                    const options = question.options || question.choices || [];
+                    let optionsHtml = '';
+                    options.forEach((option, optionIndex) => {
+                        const optionLabel = String.fromCharCode(65 + optionIndex); // A, B, C, D...
+                        optionsHtml += `
+                            <label class="choice-option" onclick="selectChoice(${index}, ${optionIndex})">
+                                <input type="radio" name="question${index}" value="${optionIndex}">
+                                <strong>${optionLabel}.</strong> ${option}
+                            </label>
+                        `;
+                    });
+                    return optionsHtml;
+
+                case 'truefalse':
+                    // 是非題
+                    return `
+                        <label class="choice-option" onclick="selectChoice(${index}, 'true')">
+                            <input type="radio" name="question${index}" value="true">
+                            <strong>⭕</strong> 正確
+                        </label>
+                        <label class="choice-option" onclick="selectChoice(${index}, 'false')">
+                            <input type="radio" name="question${index}" value="false">
+                            <strong>❌</strong> 錯誤
+                        </label>
+                    `;
+
+                case 'text':
+                case 'code':
+                default:
+                    // 簡答題或程式題
+                    return `
+                        <textarea 
+                            class="answer-input" 
+                            placeholder="請在此輸入您的答案..."
+                            onchange="updateAnswer(${index}, this.value)"
+                        ></textarea>
+                    `;
+            }
+        }
+
+        function selectChoice(questionIndex, value) {
+            answers[questionIndex] = value;
+            updateProgress();
+
+            // 更新選項樣式
+            const card = document.getElementById(`question${questionIndex}`);
+            card.querySelectorAll('.choice-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // 更新導航按鈕
+            document.getElementById(`navBtn${questionIndex}`).classList.add('answered');
+        }
+
+        function updateAnswer(questionIndex, value) {
+            answers[questionIndex] = value;
+            updateProgress();
+
+            if (value.trim() !== '') {
+                document.getElementById(`navBtn${questionIndex}`).classList.add('answered');
+            } else {
+                document.getElementById(`navBtn${questionIndex}`).classList.remove('answered');
+            }
+        }
+
+        function updateProgress() {
+            const answeredCount = Object.values(answers).filter(a => a !== '' && a !== null && a !== undefined).length;
+            document.getElementById('answeredCount').textContent = answeredCount;
+        }
+
+        function scrollToQuestion(index) {
+            document.getElementById(`question${index}`).scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            // 更新當前題目標記
+            document.querySelectorAll('.question-nav-btn').forEach(btn => btn.classList.remove('current'));
+            document.getElementById(`navBtn${index}`).classList.add('current');
+        }
+
+        function startTimer() {
+            const timerDisplay = document.getElementById('timerDisplay');
+
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+
+                const minutes = Math.floor(remainingSeconds / 60);
+                const seconds = remainingSeconds % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // 警告顏色
+                if (remainingSeconds <= 60) {
+                    timerDisplay.className = 'timer-display danger';
+                } else if (remainingSeconds <= 300) {
+                    timerDisplay.className = 'timer-display warning';
+                }
+
+                // 時間到自動提交
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    alert('⏰ 時間到！系統將自動提交您的答案。');
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        async function submitExam() {
+            // 確認提交
+            const answeredCount = Object.values(answers).filter(a => a !== '' && a !== null && a !== undefined).length;
+            if (answeredCount < questions.length) {
+                if (!confirm(`您還有 ${questions.length - answeredCount} 題未作答，確定要提交嗎？`)) {
+                    return;
+                }
+            }
+
+            try {
+                // 停止計時器
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+
+                console.log('📤 提交考試答案...');
+
+                // 組織答案資料
+                const formattedAnswers = questions.map((q, index) => ({
+                    questionId: q.id || `q${index}`,
+                    question: q.question || q.text || q.content,
+                    answer: answers[index] || '',
+                    points: q.points || 10,
+                    type: q.type || 'text'
+                }));
+
+                // 建立提交記錄
+                const submissionData = {
+                    studentId: currentUser.uid,
+                    studentName: currentUser.displayName || currentUser.email,
+                    studentEmail: currentUser.email,
+                    examId: examId,
+                    examTitle: examData.title || '未命名考試',
+                    courseId: examData.courseId || '',
+                    answers: formattedAnswers,
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'submitted',
+                    timeSpent: (examData.duration * 60) - remainingSeconds, // 秒
+                    source: 'exam'
+                };
+
+                const submissionRef = await db.collection('submissions').add(submissionData);
+
+                console.log('✅ 提交成功:', submissionRef.id);
+
+                alert('🎉 考試提交成功！');
+                window.location.href = `result.html?submissionId=${submissionRef.id}`;
+
+            } catch (error) {
+                console.error('❌ 提交失敗:', error);
+                alert('提交失敗：' + error.message);
+            }
+        }
+    </script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

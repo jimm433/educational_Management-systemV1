@@ -1,0 +1,827 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人資料 - 學生系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/student.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <style>
+        .profile-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #edf2f7;
+        }
+        
+        .avatar-container {
+            position: relative;
+        }
+        
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #4299e1;
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .avatar-upload-btn:hover {
+            background: #3182ce;
+            transform: scale(1.1);
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .profile-email {
+            color: #718096;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        
+        .profile-badges {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .badge-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #edf2f7;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        
+        .form-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        
+        .stat-item:hover {
+            border-color: #4299e1;
+            transform: translateY(-2px);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .activity-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .activity-item {
+            position: relative;
+            padding: 15px 0;
+            border-left: 2px solid #e2e8f0;
+            padding-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 20px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4299e1;
+            border: 2px solid white;
+        }
+        
+        .activity-time {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+        
+        .activity-content {
+            color: #2d3748;
+            font-weight: 500;
+        }
+        
+        .danger-zone {
+            background: #fff5f5;
+            border: 2px solid #fc8181;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .danger-zone h3 {
+            color: #c53030;
+            margin-bottom: 10px;
+        }
+        
+        .danger-zone p {
+            color: #742a2a;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入個人資料中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">學生系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="course.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>我的課程</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試測驗</span>
+                    </a>
+                    <a href="assignment.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>作業繳交</span>
+                    </a>
+                    <a href="result.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>成績查詢</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">學習工具</div>
+                    <a href="profile.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>個人資料</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>個人資料</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">學生</div>
+                            <div class="user-role">學生</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">個人資料</h1>
+                    <p class="page-subtitle">管理您的個人資訊和偏好設定</p>
+                </div>
+
+                <!-- 個人資料概覽 -->
+                <div class="profile-section">
+                    <div class="profile-header">
+                        <div class="avatar-container">
+                            <div class="avatar" id="avatarDisplay">
+                                <span id="avatarInitial">S</span>
+                            </div>
+                            <label class="avatar-upload-btn" for="avatarInput">
+                                <svg width="16" height="16" viewBox="0 0 20 20" fill="white">
+                                    <path d="M10 5v10M5 10h10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </label>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="profile-info">
+                            <div class="profile-name" id="displayName">載入中...</div>
+                            <div class="profile-email" id="displayEmail">載入中...</div>
+                            <div class="profile-badges">
+                                <span class="badge-item">
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z"/>
+                                    </svg>
+                                    學生
+                                </span>
+                                <span class="badge-item" id="memberSince">
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                                        <path d="M8 2v4M12 2v4" stroke-width="1.5"/>
+                                        <rect x="3" y="4" width="14" height="13" rx="1" stroke-width="1.5"/>
+                                    </svg>
+                                    加入時間：--
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 學習統計 -->
+                    <div class="section-title">
+                        <div class="section-icon">📊</div>
+                        學習統計
+                    </div>
+                    <div class="stats-overview">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statCourses">0</div>
+                            <div class="stat-label">已加入課程</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statExams">0</div>
+                            <div class="stat-label">完成考試</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statAssignments">0</div>
+                            <div class="stat-label">繳交作業</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statAvgScore">0%</div>
+                            <div class="stat-label">平均成績</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 基本資料編輯 -->
+                <div class="profile-section">
+                    <div class="section-title">
+                        <div class="section-icon">✏️</div>
+                        編輯資料
+                    </div>
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">顯示名稱</label>
+                                <input type="text" class="form-input" id="nameInput" placeholder="請輸入您的名稱">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email（不可修改）</label>
+                                <input type="email" class="form-input" id="emailInput" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">個人簡介</label>
+                            <textarea class="form-input" id="bioInput" rows="3" placeholder="介紹一下自己..."></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="updateProfile()">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            儲存變更
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 修改密碼 -->
+                <div class="profile-section">
+                    <div class="section-title">
+                        <div class="section-icon">🔒</div>
+                        修改密碼
+                    </div>
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">新密碼</label>
+                            <input type="password" class="form-input" id="newPassword" placeholder="請輸入新密碼（至少 6 個字元）">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">確認新密碼</label>
+                            <input type="password" class="form-input" id="confirmPassword" placeholder="再次輸入新密碼">
+                        </div>
+                        <button class="btn btn-primary" onclick="changePassword()">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <rect x="5" y="8" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M7 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            更新密碼
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 最近活動 -->
+                <div class="profile-section">
+                    <div class="section-title">
+                        <div class="section-icon">⏱️</div>
+                        最近活動
+                    </div>
+                    <div class="activity-timeline" id="activityTimeline">
+                        <div style="text-align: center; padding: 40px; color: #718096;">
+                            載入活動記錄中...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 危險區域 -->
+                <div class="danger-zone">
+                    <h3>⚠️ 危險區域</h3>
+                    <p>刪除帳號將永久移除您的所有資料，此操作無法復原。</p>
+                    <button class="btn btn-secondary" onclick="confirmDeleteAccount()" style="background: #fc8181; color: white;">
+                        刪除帳號
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/firebase-config.js"></script>
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script>
+        console.log('👤 個人資料頁面載入中...');
+
+        let currentUser = null;
+        let userProfile = null;
+        let storage; // Storage 需要在頁面中宣告
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        async function initializePage() {
+            try {
+                // Firebase 已經在 firebase-config.js 中初始化
+                // 直接使用全域的 auth 和 db
+                storage = firebase.storage();
+
+                await checkAuth();
+                await loadUserProfile();
+                await loadUserStats();
+                await loadRecentActivities();
+
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                bindEvents();
+                console.log('✅ 個人資料頁面初始化完成');
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+                alert('初始化失敗：' + error.message);
+            }
+        }
+
+        function checkAuth() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        resolve();
+                    } else {
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        async function loadUserProfile() {
+            try {
+                // 顯示基本資訊
+                const displayName = currentUser.displayName || currentUser.email.split('@')[0];
+                const email = currentUser.email;
+
+                document.getElementById('displayName').textContent = displayName;
+                document.getElementById('displayEmail').textContent = email;
+                document.getElementById('nameInput').value = currentUser.displayName || '';
+                document.getElementById('emailInput').value = email;
+
+                // 顯示頭像
+                const initial = displayName.charAt(0).toUpperCase();
+                document.getElementById('avatarInitial').textContent = initial;
+
+                if (currentUser.photoURL) {
+                    document.getElementById('avatarDisplay').innerHTML = `<img src="${currentUser.photoURL}" alt="Avatar">`;
+                }
+
+                // 顯示加入時間
+                const metadata = currentUser.metadata;
+                if (metadata.creationTime) {
+                    const joinDate = new Date(metadata.creationTime);
+                    document.getElementById('memberSince').innerHTML = `
+                        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                            <path d="M8 2v4M12 2v4" stroke-width="1.5"/>
+                            <rect x="3" y="4" width="14" height="13" rx="1" stroke-width="1.5"/>
+                        </svg>
+                        加入時間：${joinDate.toLocaleDateString('zh-TW')}
+                    `;
+                }
+
+                // 載入額外的使用者資料（如果有的話）
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    userProfile = userDoc.data();
+                    if (userProfile.bio) {
+                        document.getElementById('bioInput').value = userProfile.bio;
+                    }
+                }
+
+                console.log('✅ 使用者資料載入完成');
+            } catch (error) {
+                console.error('❌ 載入使用者資料失敗:', error);
+            }
+        }
+
+        async function loadUserStats() {
+            try {
+                // 載入課程數
+                const coursesSnapshot = await db.collection('courseEnrollments')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('status', '==', 'enrolled')
+                    .get();
+                document.getElementById('statCourses').textContent = coursesSnapshot.size;
+
+                // 載入完成的考試數
+                const examsSnapshot = await db.collection('submissions')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('source', '==', 'exam')
+                    .get();
+                document.getElementById('statExams').textContent = examsSnapshot.size;
+
+                // 載入繳交的作業數
+                const assignmentsSnapshot = await db.collection('submissions')
+                    .where('studentId', '==', currentUser.uid)
+                    .get();
+                document.getElementById('statAssignments').textContent = assignmentsSnapshot.size;
+
+                // 計算平均成績
+                let totalScore = 0;
+                let count = 0;
+                assignmentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.final_score !== undefined && data.total_points) {
+                        totalScore += (data.final_score / data.total_points) * 100;
+                        count++;
+                    }
+                });
+
+                const avgScore = count > 0 ? Math.round(totalScore / count) : 0;
+                document.getElementById('statAvgScore').textContent = avgScore + '%';
+
+                console.log('✅ 統計數據載入完成');
+            } catch (error) {
+                console.error('❌ 載入統計數據失敗:', error);
+            }
+        }
+
+        async function loadRecentActivities() {
+            try {
+                const container = document.getElementById('activityTimeline');
+
+                // 載入最近的提交記錄
+                const submissionsSnapshot = await db.collection('submissions')
+                    .where('studentId', '==', currentUser.uid)
+                    .orderBy('submittedAt', 'desc')
+                    .limit(10)
+                    .get();
+
+                if (submissionsSnapshot.empty) {
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #718096;">暫無活動記錄</div>';
+                    return;
+                }
+
+                let html = '';
+                submissionsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const time = data.submittedAt ? (data.submittedAt.toDate ? data.submittedAt.toDate() : new Date(data.submittedAt)) : new Date();
+                    const title = data.examTitle || data.assignmentTitle || data.form_title || '未命名';
+                    const type = data.source === 'exam' ? '考試' : '作業';
+
+                    html += `
+                        <div class="activity-item">
+                            <div class="activity-time">${time.toLocaleString('zh-TW')}</div>
+                            <div class="activity-content">繳交${type}：${title}</div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+                console.log('✅ 活動記錄載入完成');
+            } catch (error) {
+                console.error('❌ 載入活動記錄失敗:', error);
+                document.getElementById('activityTimeline').innerHTML = '<div style="text-align: center; padding: 40px; color: #f56565;">載入失敗</div>';
+            }
+        }
+
+        async function updateProfile() {
+            try {
+                const newName = document.getElementById('nameInput').value.trim();
+                const bio = document.getElementById('bioInput').value.trim();
+
+                if (!newName) {
+                    alert('請輸入顯示名稱');
+                    return;
+                }
+
+                // 更新 Firebase Auth 的顯示名稱
+                await currentUser.updateProfile({
+                    displayName: newName
+                });
+
+                // 更新 Firestore 中的使用者資料
+                await db.collection('users').doc(currentUser.uid).set({
+                    displayName: newName,
+                    email: currentUser.email,
+                    bio: bio,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, {
+                    merge: true
+                });
+
+                alert('✅ 個人資料更新成功！');
+                await loadUserProfile();
+
+            } catch (error) {
+                console.error('❌ 更新資料失敗:', error);
+                alert('更新失敗：' + error.message);
+            }
+        }
+
+        async function changePassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!newPassword || !confirmPassword) {
+                alert('請輸入新密碼');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('密碼長度至少需要 6 個字元');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert('兩次輸入的密碼不一致');
+                return;
+            }
+
+            try {
+                await currentUser.updatePassword(newPassword);
+                alert('✅ 密碼更新成功！');
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } catch (error) {
+                console.error('❌ 更新密碼失敗:', error);
+                if (error.code === 'auth/requires-recent-login') {
+                    alert('為了安全起見，請先登出再重新登入後再修改密碼');
+                } else {
+                    alert('更新密碼失敗：' + error.message);
+                }
+            }
+        }
+
+        function confirmDeleteAccount() {
+            const confirmation = prompt('此操作將永久刪除您的帳號和所有資料。\n請輸入「刪除帳號」以確認：');
+
+            if (confirmation === '刪除帳號') {
+                deleteAccount();
+            } else if (confirmation !== null) {
+                alert('輸入不正確，操作已取消');
+            }
+        }
+
+        async function deleteAccount() {
+            try {
+                // 刪除 Firestore 中的使用者資料
+                await db.collection('users').doc(currentUser.uid).delete();
+
+                // 刪除課程註冊記錄
+                const enrollmentsSnapshot = await db.collection('courseEnrollments')
+                    .where('studentId', '==', currentUser.uid)
+                    .get();
+
+                const batch = db.batch();
+                enrollmentsSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+
+                // 刪除 Firebase Auth 帳號
+                await currentUser.delete();
+
+                alert('✅ 帳號已刪除');
+                window.location.href = '../index.html';
+
+            } catch (error) {
+                console.error('❌ 刪除帳號失敗:', error);
+                if (error.code === 'auth/requires-recent-login') {
+                    alert('為了安全起見，請先登出再重新登入後再刪除帳號');
+                } else {
+                    alert('刪除帳號失敗：' + error.message);
+                }
+            }
+        }
+
+        function bindEvents() {
+            // 登出按鈕
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = '../index.html';
+                }).catch(error => {
+                    console.error('登出失敗:', error);
+                });
+            });
+
+            // 頭像上傳
+            document.getElementById('avatarInput').addEventListener('change', async(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('圖片大小不能超過 2MB');
+                    return;
+                }
+
+                try {
+                    // 上傳到 Firebase Storage
+                    const storageRef = storage.ref().child(`avatars/${currentUser.uid}`);
+                    await storageRef.put(file);
+                    const downloadURL = await storageRef.getDownloadURL();
+
+                    // 更新使用者頭像
+                    await currentUser.updateProfile({
+                        photoURL: downloadURL
+                    });
+
+                    // 更新顯示
+                    document.getElementById('avatarDisplay').innerHTML = `<img src="${downloadURL}" alt="Avatar">`;
+                    alert('✅ 頭像更新成功！');
+
+                } catch (error) {
+                    console.error('❌ 上傳頭像失敗:', error);
+                    alert('上傳頭像失敗：' + error.message);
+                }
+            });
+        }
+    </script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

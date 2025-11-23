@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統診斷工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #1a202c;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .status-item {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        
+        .status-item.loading {
+            border-color: #fbbf24;
+            background: #fffbeb;
+        }
+        
+        .status-item.success {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        
+        .status-item.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .status-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-icon {
+            font-size: 20px;
+        }
+        
+        .status-detail {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #4F46E5;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #4338CA;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+        
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+        
+        .log-container {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .log-time {
+            color: #94a3b8;
+        }
+        
+        .log-success {
+            color: #10b981;
+        }
+        
+        .log-error {
+            color: #ef4444;
+        }
+        
+        .log-warning {
+            color: #f59e0b;
+        }
+        
+        .log-info {
+            color: #3b82f6;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4F46E5, #7c3aed);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🔧 系統診斷工具</h1>
+            <p class="subtitle">自動檢查系統各項功能是否正常運作</p>
+
+            <div class="status-grid">
+                <div class="status-item" id="status-firebase">
+                    <div class="status-title">
+                        <span class="status-icon spinner">⏳</span> Firebase 初始化
+                    </div>
+                    <div class="status-detail">檢查中...</div>
+                </div>
+
+                <div class="status-item" id="status-auth">
+                    <div class="status-title">
+                        <span class="status-icon spinner">⏳</span> 使用者認證
+                    </div>
+                    <div class="status-detail">檢查中...</div>
+                </div>
+
+                <div class="status-item" id="status-firestore">
+                    <div class="status-title">
+                        <span class="status-icon spinner">⏳</span> Firestore 連接
+                    </div>
+                    <div class="status-detail">檢查中...</div>
+                </div>
+
+                <div class="status-item" id="status-userdata">
+                    <div class="status-title">
+                        <span class="status-icon spinner">⏳</span> 使用者資料
+                    </div>
+                    <div class="status-detail">檢查中...</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+
+            <div class="button-group" style="margin-top: 30px;">
+                <button class="btn btn-primary" onclick="runDiagnostic()">
+                    🔄 重新診斷
+                </button>
+                <button class="btn btn-secondary" onclick="clearLogs()">
+                    🗑️ 清除日誌
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='clear-cache.html'">
+                    💾 清除快取
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+                    🏠 返回首頁
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 15px;">📋 診斷日誌</h2>
+            <div class="log-container" id="logContainer"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase 配置 -->
+    <script src="assets/js/firebase-config.js"></script>
+
+    <!-- 初始化檢查器 -->
+    <script src="assets/js/init-checker.js"></script>
+
+    <script>
+        let logEntries = [];
+
+        function addLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('zh-TW');
+            const entry = {
+                time,
+                message,
+                type
+            };
+            logEntries.push(entry);
+
+            const logContainer = document.getElementById('logContainer');
+            const logDiv = document.createElement('div');
+            logDiv.className = 'log-entry';
+            logDiv.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span class="log-${type}">${message}</span>
+            `;
+            logContainer.appendChild(logDiv);
+            logContainer.scrollTop = logContainer.scrollHeight;
+
+            // 同時輸出到 console
+            console.log(`[${time}] ${message}`);
+        }
+
+        function clearLogs() {
+            logEntries = [];
+            document.getElementById('logContainer').innerHTML = '';
+            addLog('📝 日誌已清除', 'info');
+        }
+
+        function updateStatus(id, status, icon, detail) {
+            const element = document.getElementById(id);
+            element.className = `status-item ${status}`;
+
+            const iconSpan = element.querySelector('.status-icon');
+            iconSpan.textContent = icon;
+            iconSpan.className = 'status-icon';
+
+            const detailSpan = element.querySelector('.status-detail');
+            detailSpan.textContent = detail;
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progress').style.width = percent + '%';
+        }
+
+        async function runDiagnostic() {
+            try {
+                clearLogs();
+                addLog('🚀 開始系統診斷...', 'info');
+                addLog('═'.repeat(60), 'info');
+
+                updateProgress(0);
+
+                // 1. 檢查 Firebase
+                addLog('🔍 [1/4] 檢查 Firebase 初始化...', 'info');
+                try {
+                    await InitChecker.checkFirebaseInitialization();
+                    updateStatus('status-firebase', 'success', '✅', 'Firebase 已正確初始化');
+                    addLog('✅ Firebase SDK 版本: ' + firebase.SDK_VERSION, 'success');
+                    updateProgress(25);
+                } catch (error) {
+                    updateStatus('status-firebase', 'error', '❌', error.message);
+                    addLog('❌ Firebase 初始化失敗: ' + error.message, 'error');
+                    throw error;
+                }
+
+                // 2. 檢查認證
+                addLog('🔍 [2/4] 檢查使用者認證...', 'info');
+                let user;
+                try {
+                    user = await InitChecker.checkAuthState();
+                    updateStatus('status-auth', 'success', '✅', '已登入: ' + user.email);
+                    addLog('✅ 使用者: ' + user.email, 'success');
+                    addLog('📋 UID: ' + user.uid, 'info');
+                    updateProgress(50);
+                } catch (error) {
+                    updateStatus('status-auth', 'error', '❌', '未登入或認證失敗');
+                    addLog('❌ 認證失敗: ' + error.message, 'error');
+                    addLog('⚠️ 請先登入系統', 'warning');
+                    throw error;
+                }
+
+                // 3. 檢查 Firestore
+                addLog('🔍 [3/4] 檢查 Firestore 連接...', 'info');
+                try {
+                    await InitChecker.checkFirestoreConnection();
+                    updateStatus('status-firestore', 'success', '✅', 'Firestore 連接正常');
+                    addLog('✅ Firestore 連接正常', 'success');
+                    updateProgress(75);
+                } catch (error) {
+                    updateStatus('status-firestore', 'error', '❌', error.message);
+                    addLog('❌ Firestore 連接失敗: ' + error.message, 'error');
+                    throw error;
+                }
+
+                // 4. 檢查使用者資料
+                addLog('🔍 [4/4] 檢查使用者資料...', 'info');
+                try {
+                    let userData = await InitChecker.checkUserData(user);
+
+                    if (!userData) {
+                        addLog('⚠️ 使用者資料不存在，嘗試自動創建...', 'warning');
+                        userData = await InitChecker.autoCreateUserData(user);
+                        addLog('✅ 使用者資料已自動創建', 'success');
+                    }
+
+                    updateStatus('status-userdata', 'success', '✅', '資料完整');
+                    addLog('✅ 使用者資料載入成功', 'success');
+                    addLog('📋 角色: ' + (userData.role === 'teacher' ? '教師' : '學生'), 'info');
+                    addLog('📋 顯示名稱: ' + (userData.displayName || '未設定'), 'info');
+                    updateProgress(100);
+                } catch (error) {
+                    updateStatus('status-userdata', 'error', '❌', error.message);
+                    addLog('❌ 使用者資料檢查失敗: ' + error.message, 'error');
+                    throw error;
+                }
+
+                addLog('═'.repeat(60), 'info');
+                addLog('🎉 診斷完成！所有系統正常運作', 'success');
+
+            } catch (error) {
+                addLog('═'.repeat(60), 'error');
+                addLog('❌ 診斷失敗: ' + error.message, 'error');
+                addLog('', 'info');
+                addLog('💡 建議措施:', 'warning');
+
+                if (error.message.includes('Firebase') || error.message.includes('firebase')) {
+                    addLog('• 檢查網路連接', 'info');
+                    addLog('• 確認 Firebase 配置正確', 'info');
+                    addLog('• 嘗試重新整理頁面', 'info');
+                }
+
+                if (error.message.includes('未登入') || error.message.includes('認證')) {
+                    addLog('• 請先登入系統', 'info');
+                    addLog('• 點擊右上角「返回首頁」按鈕', 'info');
+                }
+
+                if (error.message.includes('permission') || error.message.includes('權限')) {
+                    addLog('• 檢查 Firestore 安全規則', 'info');
+                    addLog('• 確認帳號有足夠權限', 'info');
+                }
+
+                addLog('• 嘗試清除瀏覽器快取（按 Ctrl+Shift+R）', 'info');
+                addLog('• 使用右上角「清除快取」按鈕', 'info');
+            }
+        }
+
+        // 頁面載入時自動執行診斷
+        window.addEventListener('load', function() {
+            setTimeout(runDiagnostic, 500);
+        });
+    </script>
+</body>
+
+</html>

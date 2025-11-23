@@ -1,0 +1,40 @@
+/* 響應式樣式檔案 - 教師題庫管理系統 */
+
+
+/* 行動裝置優先設計 */
+
+@media (max-width: 768px) {
+    /* 導航選單 */
+    .nav-menu {
+        display: none;
+    }
+    .mobile-menu-toggle {
+        display: block;
+    }
+    /* 主要內容 */
+    .main-content {
+        padding: var(--spacing-md);
+    }
+    /* 統計卡片 */
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* 平板裝置 */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/* 桌面裝置 */
+
+@media (min-width: 1025px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

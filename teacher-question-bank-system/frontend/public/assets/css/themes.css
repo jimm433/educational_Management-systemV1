@@ -1,0 +1,30 @@
+/* 主題樣式檔案 - 教師題庫管理系統 */
+
+
+/* 亮色主題（預設） */
+
+[data-theme="light"] {
+    /* 已在 main.css 中定義 */
+}
+
+
+/* 暗色主題 */
+
+[data-theme="dark"] {
+    /* 已在 main.css 中定義 */
+}
+
+
+/* 其他主題變化 */
+
+[data-theme="blue"] {
+    --primary-color: #1976D2;
+    --primary-dark: #0D47A1;
+    --primary-light: #BBDEFB;
+}
+
+[data-theme="green"] {
+    --primary-color: #388E3C;
+    --primary-dark: #1B5E20;
+    --primary-light: #C8E6C9;
+}

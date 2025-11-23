@@ -1,0 +1,465 @@
+/* 登入頁面專用樣式 */
+
+:root {
+    --primary-color: #1976d2;
+    --primary-dark: #1565c0;
+    --primary-light: #42a5f5;
+    --secondary-color: #26a69a;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --warning-color: #ff9800;
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --border-color: #e0e0e0;
+    --bg-light: #fafafa;
+    --white: #ffffff;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif;
+    background-color: var(--bg-light);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.6;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* 主容器 */
+
+.login-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    max-width: 1200px;
+    min-height: 600px;
+    background: var(--white);
+    box-shadow: var(--shadow-lg);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 20px;
+}
+
+
+/* 左側品牌區塊 */
+
+.login-left {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: var(--white);
+    padding: 60px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.brand-section {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.brand-logo svg {
+    color: var(--white);
+    flex-shrink: 0;
+}
+
+.brand-logo h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.brand-description {
+    font-size: 16px;
+    line-height: 1.6;
+    opacity: 0.95;
+    margin-bottom: 48px;
+}
+
+.features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+}
+
+.feature-item svg {
+    flex-shrink: 0;
+    opacity: 0.9;
+}
+
+
+/* 右側登入表單區塊 */
+
+.login-right {
+    background: var(--white);
+    padding: 60px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-form-container {
+    max-width: 420px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.login-header {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.login-header h2 {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.login-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+
+/* 身份選擇卡片 */
+
+.role-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.role-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    text-align: left;
+}
+
+.role-card:hover {
+    border-color: var(--primary-light);
+    background: #f5f9ff;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.role-card.selected {
+    border-color: var(--primary-color);
+    background: #f5f9ff;
+    box-shadow: var(--shadow-md);
+}
+
+.role-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.teacher-icon {
+    background: #e3f2fd;
+    color: var(--primary-color);
+}
+
+.role-card.selected .teacher-icon {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.student-icon {
+    background: #e0f2f1;
+    color: var(--secondary-color);
+}
+
+.role-card.selected .student-icon {
+    background: var(--secondary-color);
+    color: var(--white);
+}
+
+.role-content {
+    flex: 1;
+}
+
+.role-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.role-content p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.role-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.role-card.selected .role-check {
+    opacity: 1;
+}
+
+.role-check svg {
+    color: var(--primary-color);
+}
+
+
+/* Google 登入按鈕 */
+
+.google-signin-btn {
+    width: 100%;
+    padding: 14px 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--white);
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    margin-top: 24px;
+}
+
+.google-signin-btn:hover:not(:disabled) {
+    background: var(--bg-light);
+    border-color: var(--text-secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+.google-signin-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.google-logo {
+    flex-shrink: 0;
+}
+
+
+/* 訊息框 */
+
+.message-box {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 16px 0;
+    font-size: 14px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+}
+
+.message-box.show {
+    display: flex;
+}
+
+.message-box.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.message-box.error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+}
+
+.message-box.info {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
+}
+
+
+/* 載入中覆蓋層 */
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-overlay.show {
+    display: flex;
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-overlay p {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+
+/* 頁尾 */
+
+.login-footer {
+    text-align: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+.login-footer p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.login-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.login-footer a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+
+/* 響應式設計 */
+
+@media (max-width: 968px) {
+    .login-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+    }
+    .login-left {
+        display: none;
+    }
+    .login-right {
+        padding: 40px 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-wrapper {
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+    .login-right {
+        padding: 30px 20px;
+    }
+    .login-header h2 {
+        font-size: 24px;
+    }
+    .role-card {
+        padding: 16px;
+    }
+    .role-icon {
+        width: 40px;
+        height: 40px;
+    }
+    .role-content h3 {
+        font-size: 15px;
+    }
+    .role-content p {
+        font-size: 12px;
+    }
+}
+
+
+/* 動畫效果 */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-form-container>* {
+    animation: fadeIn 0.4s ease-out;
+}
+
+
+/* 焦點狀態 */
+
+.role-card:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.google-signin-btn:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}

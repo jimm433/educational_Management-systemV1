@@ -1,0 +1,176 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===== 輔助函數 =====
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ===== 核心集合規則 =====
+    
+    // 使用者集合
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      // 允許使用者創建和更新自己的文檔（修復新使用者無法創建文檔的問題）
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 題目集合 - 已登入用戶可完全操作
+    match /questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+
+    // 課程集合
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+
+    // 使用者課程關聯集合
+    match /userCourses/{userCourseId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 課程註冊集合
+    match /courseEnrollments/{enrollmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 考試集合
+    match /exams/{examId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 考試結果集合
+    match /examResults/{resultId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 作業集合
+    match /assignments/{assignmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 作業提交集合
+    match /assignmentSubmissions/{submissionId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 批改事件集合（Google Forms 同步用）
+    match /grading_events/{eventId} {
+      allow read: if isAuthenticated();
+      allow write: if true;  // 允許未登入的 Google Apps Script 寫入
+    }
+
+    // 批改結果集合
+    match /grading_results/{resultId} {
+      allow read: if isAuthenticated();
+      allow write: if true;  // 允許未登入的 Google Apps Script 寫入
+    }
+
+    // 通知集合
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 系統設定集合
+    match /system/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 使用者設定集合
+    match /user_settings/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 測試集合
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // 測試集合 2
+    match /test_collection/{docId} {
+      allow read, write: if true;
+    }
+
+    // 備用測試集合
+    match /_test/{docId} {
+      allow read, write: if true;
+    }
+
+    // 日誌集合
+    match /logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 統計資料集合
+    match /statistics/{statId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 活動日誌
+    match /activityLogs/{logId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Google Forms 集合
+    match /googleForms/{formId} {
+      allow read: if isAuthenticated();
+      allow write: if true;  // 允許 Google Apps Script 寫入
+    }
+
+    // 考試提交集合
+    match /examSubmissions/{submissionId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // 作業提交集合（submissions）
+    match /submissions/{submissionId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // 批改日誌集合（grading_logs）- 自動清理，保留一週
+    match /grading_logs/{logId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // 課程公告集合
+    match /announcements/{announcementId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // 課程教材集合
+    match /materials/{materialId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+  }
+}

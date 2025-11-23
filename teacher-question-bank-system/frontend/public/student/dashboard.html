@@ -1,0 +1,429 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生儀表板 - 教育管理系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/student.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">學生系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="dashboard.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="course.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>我的課程</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試測驗</span>
+                    </a>
+                    <a href="assignment.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>作業繳交</span>
+                    </a>
+                    <a href="result.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>成績查詢</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">學習工具</div>
+                    <a href="profile.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>個人資料</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <span>學生儀表板</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">學生</div>
+                            <div class="user-role">學生</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">歡迎回來！</h1>
+                    <p class="page-subtitle">查看您的學習狀況和最新動態</p>
+                </div>
+
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 14L21 9L12 4L3 9L12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 14L12 19L21 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 19L12 24L21 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalCourses">0</div>
+                        <div class="stat-label">已加入課程</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="completedAssignments">0</div>
+                        <div class="stat-label">已完成作業</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="pendingTasks">0</div>
+                        <div class="stat-label">待辦事項</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="averageScore">--</div>
+                        <div class="stat-label">平均成績</div>
+                    </div>
+                </div>
+
+                <!-- 快速操作 -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>快速操作</h2>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="course.html" class="action-btn">
+                            <div class="action-icon blue">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 14L21 9L12 4L3 9L12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 14L12 19L21 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 19L12 24L21 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">瀏覽課程</div>
+                                <div class="action-desc">查看所有已加入的課程</div>
+                            </div>
+                        </a>
+                        <a href="exam.html" class="action-btn">
+                            <div class="action-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 13H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M9 17H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">參加考試</div>
+                                <div class="action-desc">查看可用的考試測驗</div>
+                            </div>
+                        </a>
+                        <a href="assignment.html" class="action-btn">
+                            <div class="action-icon orange">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">繳交作業</div>
+                                <div class="action-desc">查看並提交作業</div>
+                            </div>
+                        </a>
+                        <a href="result.html" class="action-btn">
+                            <div class="action-icon purple">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 5 4H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">查看成績</div>
+                                <div class="action-desc">查詢考試和作業成績</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 最近課程 -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>最近課程</h2>
+                        <a href="course.html" class="view-all-link">查看全部</a>
+                    </div>
+                    <div id="recentCourses" class="courses-list">
+                        <div class="empty-state">
+                            <p>尚未加入任何課程</p>
+                            <a href="course.html" class="btn btn-primary">加入課程</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 待辦事項 -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>待辦事項</h2>
+                    </div>
+                    <div id="todoList" class="todo-list">
+                        <div class="empty-state">
+                            <p>暫無待辦事項</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/firebase-config.js"></script>
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script>
+        console.log('📚 學生儀表板載入中...');
+
+        let currentUser = null;
+
+        // 頁面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        async function initializePage() {
+            try {
+                // Firebase 已經在 firebase-config.js 中初始化
+                // 直接使用全域的 auth 和 db
+
+                // 檢查登入狀態
+                await checkAuth();
+
+                // 載入數據
+                await loadDashboardData();
+
+                // 隱藏載入畫面
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                // 綁定事件
+                bindEvents();
+
+                console.log('✅ 學生儀表板初始化完成');
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+                alert('初始化失敗，請重新登入');
+                window.location.href = '../index.html';
+            }
+        }
+
+        function checkAuth() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        console.log('✅ 使用者已登入:', user.email);
+                        resolve();
+                    } else {
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        async function loadDashboardData() {
+            try {
+                // 載入課程數量
+                const coursesSnapshot = await db.collection('courseEnrollments')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('status', '==', 'enrolled')
+                    .get();
+
+                document.getElementById('totalCourses').textContent = coursesSnapshot.size;
+
+                // 載入已完成作業數量
+                const submissionsSnapshot = await db.collection('submissions')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('status', '==', 'submitted')
+                    .get();
+
+                document.getElementById('completedAssignments').textContent = submissionsSnapshot.size;
+
+                // 計算待辦事項（未提交的作業）
+                let pendingCount = 0;
+                for (const doc of coursesSnapshot.docs) {
+                    const courseId = doc.data().courseId;
+                    const assignmentsSnapshot = await db.collection('assignments')
+                        .where('courseId', '==', courseId)
+                        .get();
+
+                    pendingCount += assignmentsSnapshot.size - submissionsSnapshot.size;
+                }
+
+                document.getElementById('pendingTasks').textContent = Math.max(0, pendingCount);
+
+                // 計算平均成績
+                let totalScore = 0;
+                let count = 0;
+                submissionsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.score !== undefined && data.score !== null) {
+                        totalScore += data.score;
+                        count++;
+                    }
+                });
+
+                const avgScore = count > 0 ? (totalScore / count).toFixed(1) : '--';
+                document.getElementById('averageScore').textContent = avgScore;
+
+                // 載入最近課程
+                await loadRecentCourses(coursesSnapshot);
+
+                console.log('✅ 儀表板數據載入完成');
+            } catch (error) {
+                console.error('❌ 載入數據失敗:', error);
+            }
+        }
+
+        async function loadRecentCourses(enrollmentsSnapshot) {
+            const container = document.getElementById('recentCourses');
+
+            if (enrollmentsSnapshot.empty) {
+                container.innerHTML = '<div class="empty-state"><p>尚未加入任何課程</p><a href="course.html" class="btn btn-primary">加入課程</a></div>';
+                return;
+            }
+
+            let html = '';
+            let count = 0;
+
+            for (const doc of enrollmentsSnapshot.docs) {
+                if (count >= 3) break; // 只顯示最近 3 個課程
+
+                const enrollment = doc.data();
+                const courseDoc = await db.collection('courses').doc(enrollment.courseId).get();
+
+                if (courseDoc.exists) {
+                    const course = courseDoc.data();
+                    html += `
+                        <div class="course-item">
+                            <div class="course-info">
+                                <h3>${course.name || course.courseName}</h3>
+                                <p>${course.teacherName || '未知教師'}</p>
+                            </div>
+                            <a href="course-content.html?courseId=${courseDoc.id}" class="btn btn-sm btn-primary">進入課程</a>
+                        </div>
+                    `;
+                    count++;
+                }
+            }
+
+            container.innerHTML = html || '<div class="empty-state"><p>暫無課程數據</p></div>';
+        }
+
+        function bindEvents() {
+            // 登出按鈕
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = '../index.html';
+                }).catch(error => {
+                    console.error('登出失敗:', error);
+                    alert('登出失敗');
+                });
+            });
+        }
+    </script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

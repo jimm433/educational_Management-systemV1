@@ -1,0 +1,1419 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 學習助手 - 教育管理系統</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        /* AI 助手專屬樣式 */
+        
+        .ai-chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 200px);
+            max-height: 800px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .chat-header h2 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .chat-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #f9fafb;
+        }
+        
+        .chat-message {
+            display: flex;
+            gap: 12px;
+            animation: messageSlideIn 0.3s ease;
+        }
+        
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .chat-message.user .message-avatar {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+        }
+        
+        .chat-message.ai .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .message-content {
+            flex: 1;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+        
+        .chat-message.ai .message-content {
+            background: linear-gradient(135deg, #f3e7ff 0%, #e9d5ff 100%);
+        }
+        
+        .message-time {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            /* 讓圖表容器適應聊天框寬度 */
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            /* 防止內容溢出 */
+        }
+        
+        .chart-container canvas {
+            width: 100% !important;
+            /* 高度交由 JS 動態設定，避免標籤被切掉 */
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2d3748;
+        }
+        
+        .chat-input-area {
+            padding: 20px 24px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .suggested-questions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .suggested-btn {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border: 1px solid #d1d5db;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 13px;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .suggested-btn:hover {
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            resize: none;
+            font-family: inherit;
+            max-height: 120px;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .send-btn:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .send-btn:active {
+            transform: translateY(0);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 16px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+        
+        .empty-chat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #9ca3af;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .empty-chat svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+        
+        .ai-disclaimer {
+            text-align: center;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入 AI 助手中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="5" width="14" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M3 8h14M7 5v-2M13 5v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">教育管理系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="../dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="question.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>題庫管理</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試管理</span>
+                    </a>
+                    <a href="course.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>課程管理</span>
+                    </a>
+                    <a href="grading.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>作業批改</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">分析與設定</div>
+                    <a href="analytic.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M4 14v-4M10 14V8M16 14v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>數據分析</span>
+                    </a>
+                    <a href="ai-assistant.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 2L3 7v6l7 5 7-5V7l-7-5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 12V8M8 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>AI 學習助手</span>
+                    </a>
+                    <a href="setting.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 2v2M10 16v2M18 10h-2M6 10H4M15.66 4.34l-1.41 1.41M5.75 14.25l-1.41 1.41M15.66 15.66l-1.41-1.41M5.75 5.75L4.34 4.34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>系統設定</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="../dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>AI 學習助手</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">教師</div>
+                            <div class="user-role">教師</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">AI 學習助手</h1>
+                    <p class="page-subtitle">與 AI 對話，深入了解學生學習狀況與教學建議</p>
+                </div>
+
+                <!-- AI 聊天容器 -->
+                <div class="ai-chat-container">
+                    <div class="chat-header">
+                        <h2>🤖 教學智能助手</h2>
+                        <p>我可以幫您分析學生表現、找出學習弱點、提供教學建議</p>
+                    </div>
+
+                    <!-- 聊天訊息區 -->
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="empty-chat" id="emptyChat">
+                            <svg viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L3 7v6l7 5 7-5V7l-7-5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 12V8M8 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <h3>歡迎使用 AI 學習助手</h3>
+                            <p>請輸入問題或點擊下方的建議問題開始對話</p>
+                        </div>
+                    </div>
+
+                    <!-- 輸入區域 -->
+                    <div class="chat-input-area">
+                        <div class="suggested-questions" id="suggestedQuestions">
+                            <button class="suggested-btn" onclick="askQuestion('分析目前所有學生的整體表現，並指出每個學生的具體弱點')">
+                                📊 完整學生表現分析
+                            </button>
+                            <button class="suggested-btn" onclick="askQuestion('列出所有知識點的錯誤率，並推薦我應該重點加強哪些章節')">
+                                🎯 知識點弱點分析
+                            </button>
+                            <button class="suggested-btn" onclick="askQuestion('哪些學生需要個別輔導？請給出具體的學習建議')">
+                                ⚠️ 需關注學生清單
+                            </button>
+                            <button class="suggested-btn" onclick="askQuestion('根據批改數據，給我具體的教學改進方向和練習題推薦')">
+                                💡 教學改進建議
+                            </button>
+                        </div>
+
+                        <div class="chat-input-container">
+                            <textarea class="chat-input" id="chatInput" rows="1" placeholder="詢問學生學習狀況、教學建議、數據分析..." onkeypress="handleKeyPress(event)"></textarea>
+                            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                                <svg viewBox="0 0 20 20" fill="none" style="width: 20px; height: 20px;">
+                                    <path d="M2 10l16-8-8 16-2-8-6-0z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="ai-disclaimer">
+                            ⚠️ AI 回答僅供參考，請結合實際情況判斷
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        // 改善某些網路環境下的 404/連線不穩：啟用長輪詢與無限快取
+        try {
+            db.settings({
+                experimentalForceLongPolling: true,
+                cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+            });
+            console.log('🛠️ Firestore 已啟用 longPolling 與無限快取');
+        } catch (e) {
+            console.warn('⚠️ 設定 Firestore 參數時發生例外（可忽略）:', e.message);
+        }
+
+        let currentUser = null;
+        let chatHistory = [];
+        let studentData = null;
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🤖 AI 學習助手載入中...');
+            initializeAIAssistant();
+        });
+
+        async function initializeAIAssistant() {
+            try {
+                await checkAuthState();
+                await loadStudentData();
+
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                console.log('✅ AI 助手初始化完成');
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+                alert('初始化失敗：' + error.message);
+            }
+        }
+
+        function checkAuthState() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(function(user) {
+                    if (user) {
+                        console.log('✅ 使用者已登入:', user.email);
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        resolve(user);
+                    } else {
+                        console.log('❌ 使用者未登入');
+                        window.location.href = '../dashboard.html';
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        // 載入學生數據
+        async function loadStudentData() {
+            try {
+                console.log('📊 開始載入完整學生資料...');
+
+                // 1️⃣ 載入所有批改記錄（包含詳細逐題數據）
+                let gradingsSnapshot = await db.collection('grading_events')
+                    .where('status', '==', 'completed')
+                    .get(); // 保持無 orderBy 以避免索引
+
+                // 若線上抓不到資料，嘗試從快取讀取
+                if (gradingsSnapshot.size === 0) {
+                    console.warn('⚠️ 線上讀取為 0，嘗試從快取讀取（completed）...');
+                    try {
+                        gradingsSnapshot = await db.collection('grading_events')
+                            .where('status', '==', 'completed')
+                            .get({
+                                source: 'cache'
+                            });
+                    } catch (e) {
+                        console.warn('⚠️ 從快取讀取（completed）失敗:', e.message);
+                    }
+                }
+
+                // 快取 completed 仍為 0，再嘗試無條件快取讀取作為後備
+                if (gradingsSnapshot.size === 0) {
+                    console.warn('⚠️ 快取（completed）為 0，嘗試快取無條件讀取...');
+                    try {
+                        gradingsSnapshot = await db.collection('grading_events')
+                            .get({
+                                source: 'cache'
+                            });
+                    } catch (e) {
+                        console.warn('⚠️ 快取無條件讀取失敗:', e.message);
+                    }
+                }
+
+                console.log(`✅ 載入 ${gradingsSnapshot.size} 筆批改記錄`);
+
+                // 手動排序（按批改時間降序）
+                const sortedDocs = gradingsSnapshot.docs.sort((a, b) => {
+                    const dateA = a.data().graded_at || a.data().created_at || new Date(0);
+                    const dateB = b.data().graded_at || b.data().created_at || new Date(0);
+                    const timeA = dateA.toMillis ? dateA.toMillis() : new Date(dateA).getTime();
+                    const timeB = dateB.toMillis ? dateB.toMillis() : new Date(dateB).getTime();
+                    return timeB - timeA; // 降序（新的在前）
+                });
+
+                // 2️⃣ 載入所有題目（用於標籤反向查詢）
+                console.log('📚 載入題庫資料...');
+                const questionsSnapshot = await db.collection('questions').get();
+                const questionsMap = {};
+
+                questionsSnapshot.docs.forEach(doc => {
+                    questionsMap[doc.id] = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+                });
+
+                console.log(`✅ 載入 ${Object.keys(questionsMap).length} 個題目`);
+
+                // 3️⃣ 處理批改記錄，提取詳細數據
+                const gradings = [];
+                const tagErrorStats = {}; // 標籤錯誤統計
+                const studentStats = {}; // 學生統計
+
+                for (const doc of sortedDocs) {
+                    const data = doc.data();
+                    const studentEmail = data.student_email;
+                    const studentName = data.student_name || studentEmail;
+
+                    // 初始化學生統計
+                    if (!studentStats[studentEmail]) {
+                        studentStats[studentEmail] = {
+                            name: studentName,
+                            email: studentEmail,
+                            totalAssignments: 0,
+                            totalQuestions: 0,
+                            totalScore: 0,
+                            tagErrors: {},
+                            weakestTags: []
+                        };
+                    }
+
+                    studentStats[studentEmail].totalAssignments++;
+
+                    // 🔥 優先使用 analytics_data（包含逐題詳細數據）
+                    let recordTags = [];
+                    let recordScore = data.total_score || data.final_score || 0;
+                    let recordMaxScore = data.max_total_score || 100;
+                    let questionDetails = [];
+
+                    if (data.analytics_data && data.analytics_data.questions) {
+                        // 新格式：有逐題數據
+                        questionDetails = data.analytics_data.questions.map(q => ({
+                            questionNum: q.questionNum,
+                            questionText: q.questionText,
+                            studentAnswer: q.studentAnswer,
+                            correctAnswer: q.correctAnswer,
+                            score: q.score,
+                            maxScore: q.maxScore,
+                            gptScore: q.gptScore,
+                            claudeScore: q.claudeScore,
+                            tags: q.tags || ['未分類'],
+                            isCorrect: q.isCorrect || (q.score >= q.maxScore * 0.6)
+                        }));
+
+                        // 統計標籤錯誤
+                        questionDetails.forEach(q => {
+                            studentStats[studentEmail].totalQuestions++;
+                            q.tags.forEach(tag => {
+                                if (!q.isCorrect) {
+                                    tagErrorStats[tag] = (tagErrorStats[tag] || 0) + 1;
+                                    studentStats[studentEmail].tagErrors[tag] =
+                                        (studentStats[studentEmail].tagErrors[tag] || 0) + 1;
+                                }
+                                recordTags.push(tag);
+                            });
+                        });
+
+                        recordTags = [...new Set(recordTags)]; // 去重
+                    } else {
+                        // 舊格式：只有整份作業的標籤
+                        recordTags = data.tags || ['未分類'];
+                        studentStats[studentEmail].totalQuestions += (data.total_questions || 1);
+                    }
+
+                    studentStats[studentEmail].totalScore += recordScore;
+
+                    gradings.push({
+                        id: doc.id,
+                        studentName,
+                        studentEmail,
+                        score: recordScore,
+                        maxScore: recordMaxScore,
+                        examTitle: data.form_title || '未命名',
+                        tags: recordTags,
+                        questionDetails, // 逐題詳細數據
+                        hasDetailedData: questionDetails.length > 0,
+                        createdAt: data.graded_at || data.created_at,
+                        gptFeedback: data.gpt_feedback,
+                        claudeFeedback: data.claude_feedback
+                    });
+                }
+
+                // 計算每個學生的弱點標籤（Top 3）
+                Object.values(studentStats).forEach(student => {
+                    const weakestTags = Object.entries(student.tagErrors)
+                        .sort((a, b) => b[1] - a[1]) // 錯最多的排前面
+                        .slice(0, 3)
+                        .map(([tag, count]) => ({
+                            tag,
+                            errorCount: count
+                        }));
+                    student.weakestTags = weakestTags;
+                });
+
+                studentData = {
+                    totalGraded: gradingsSnapshot.size,
+                    totalStudents: Object.keys(studentStats).length,
+                    gradings,
+                    studentStats,
+                    tagErrorStats,
+                    questionsMap // 題庫映射
+                };
+
+                console.log('✅ 載入完整學生數據:');
+                console.log('  📊 批改記錄:', gradings.length, '筆');
+                console.log('  👥 學生數量:', studentData.totalStudents, '人');
+                console.log('  📋 有詳細逐題數據:', gradings.filter(g => g.hasDetailedData).length, '筆');
+                console.log('  🏷️ 錯誤標籤統計:', tagErrorStats);
+            } catch (error) {
+                console.error('❌ 載入數據失敗:', error);
+                throw error;
+            }
+        }
+
+        // 建議問題點擊
+        function askQuestion(question) {
+            document.getElementById('chatInput').value = question;
+            sendMessage();
+        }
+
+        // 處理 Enter 鍵
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // 發送訊息
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // 清空輸入框
+            input.value = '';
+
+            // 隱藏空狀態
+            document.getElementById('emptyChat').style.display = 'none';
+
+            // 隱藏建議問題
+            document.getElementById('suggestedQuestions').style.display = 'none';
+
+            // 添加用戶訊息
+            addMessage('user', message);
+
+            // 顯示打字指示器
+            showTypingIndicator();
+
+            // 檢測是否需要生成圖表
+            const needsChart = detectChartRequest(message);
+            let chartData = null;
+
+            if (needsChart) {
+                chartData = await generateChartData(message);
+            }
+
+            // 生成 AI 回應
+            const response = await generateAIResponse(message);
+
+            // 移除打字指示器
+            hideTypingIndicator();
+
+            // 添加 AI 回應（可能包含圖表）
+            addMessage('ai', response, chartData);
+        }
+
+        // 添加訊息到聊天
+        function addMessage(sender, content, chartData = null) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}`;
+
+            const avatar = sender === 'user' ?
+                (currentUser.displayName ? currentUser.displayName.charAt(0) : '👤') :
+                '🤖';
+
+            const time = new Date().toLocaleTimeString('zh-TW', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const chartId = chartData ? `chart-${Date.now()}` : null;
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div style="flex: 1;">
+                    <div class="message-content">${escapeHtml(content).replace(/\n/g, '<br>')}</div>
+                    ${chartData ? `
+                        <div class="chart-container">
+                            <div class="chart-title">${chartData.title || '數據圖表'}</div>
+                            <canvas id="${chartId}"></canvas>
+                        </div>
+                    ` : ''}
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // 如果有圖表數據，創建圖表
+            if (chartData && chartId) {
+                setTimeout(() => {
+                    createChart(chartId, chartData);
+                }, 100);
+            }
+
+            // 保存到歷史記錄
+            chatHistory.push({
+                sender,
+                content,
+                time,
+                chartData
+            });
+        }
+
+        // 顯示打字指示器
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const indicator = document.createElement('div');
+            indicator.id = 'typingIndicator';
+            indicator.className = 'chat-message ai';
+            indicator.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(indicator);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // 隱藏打字指示器
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // 生成 AI 回應（使用 Gemini API）
+        async function generateAIResponse(question) {
+            try {
+                // 檢查是否有學生數據
+                if (!studentData || studentData.totalGraded === 0) {
+                    return '目前還沒有學生批改數據。請先批改一些作業後再來詢問我！';
+                }
+
+                // 準備數據摘要（給 AI 參考）
+                const dataSummary = prepareDataSummary();
+
+                // 構建 AI 提示詞
+                const systemPrompt = `你是一位專業的教育數據分析助手。你的任務是根據「提供的批改數據」來回答老師的問題。
+
+**嚴格規則：**
+1. 你只能根據提供的數據回答，不能編造或推測數據
+2. 如果數據中沒有相關資訊，請明確告知
+3. 回答要具體、數據化、可操作
+4. 使用繁體中文回答
+5. 回答要包含具體數字和百分比
+
+**當前批改數據：**
+${dataSummary}
+
+請根據以上數據回答老師的問題。`;
+
+                // 調用後端 Cloud Function（使用後端的 Gemini API）
+                const cloudFunctionUrl = 'https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/aiAssistantChat';
+
+                console.log('🔄 調用後端 AI 助理服務...');
+
+                const response = await fetch(cloudFunctionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        context: dataSummary
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('❌ 後端服務錯誤:', errorData);
+                    throw new Error(errorData.message || '後端服務錯誤');
+                }
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.message || 'AI 服務返回失敗');
+                }
+
+                console.log(`✅ AI 回應成功 (模型: ${result.model})`);
+                return result.response;
+
+            } catch (error) {
+                console.error('❌ AI 回應生成失敗:', error);
+                return `抱歉，AI 服務暫時無法使用。錯誤訊息：${error.message}\n\n請確認：\n1. Gemini API 金鑰是否正確\n2. 網路連線是否正常`;
+            }
+        }
+
+        // 準備數據摘要
+        function prepareDataSummary() {
+            const { gradings, studentStats, tagErrorStats, totalStudents } = studentData;
+
+            // 計算整體統計
+            const totalGradings = gradings.length;
+            const withDetailedData = gradings.filter(g => g.hasDetailedData).length;
+            const avgScore = (gradings.reduce((sum, g) => sum + g.score, 0) / totalGradings).toFixed(1);
+
+            // Top 5 弱點標籤
+            const topWeakTags = Object.entries(tagErrorStats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([tag, count]) => `${tag} (${count}次錯誤)`)
+                .join(', ');
+
+            // 學生表現分布
+            const excellentStudents = Object.values(studentStats).filter(s => 
+                (s.totalScore / s.totalAssignments) >= 80
+            ).length;
+            const goodStudents = Object.values(studentStats).filter(s => {
+                const avg = s.totalScore / s.totalAssignments;
+                return avg >= 60 && avg < 80;
+            }).length;
+            const needsHelp = totalStudents - excellentStudents - goodStudents;
+
+            // 逐題錯誤詳情（來自有詳細數據的記錄）
+            const detailedErrors = [];
+            gradings.filter(g => g.hasDetailedData).forEach(g => {
+                g.questionDetails.forEach(q => {
+                    if (!q.isCorrect) {
+                        detailedErrors.push({
+                            student: g.studentName,
+                            exam: g.examTitle,
+                            question: q.questionText,
+                            score: q.score,
+                            maxScore: q.maxScore,
+                            tags: q.tags.join(', ')
+                        });
+                    }
+                });
+            });
+
+            // 學生表現排名
+            const studentRankings = Object.values(studentStats)
+                .map(s => ({
+                    student: s.name,
+                    email: s.email,
+                    avg: (s.totalScore / s.totalAssignments).toFixed(1),
+                    assignments: s.totalAssignments,
+                    questions: s.totalQuestions,
+                    weakestTags: s.weakestTags
+                }))
+                .sort((a, b) => b.avg - a.avg);
+
+            // 構建詳細摘要文本
+            let summary = `## 📊 批改數據統計\n\n`;
+            summary += `- 總批改數：${totalGradings} 份\n`;
+            summary += `- 學生人數：${totalStudents} 人\n`;
+            summary += `- 平均分數：${avgScore} 分\n`;
+            summary += `- 有逐題詳細數據：${withDetailedData}/${totalGradings} 份\n\n`;
+
+            summary += `## 👥 學生表現分布\n`;
+            summary += `- 🟢 優秀 (80分以上)：${excellentStudents} 人\n`;
+            summary += `- 🔵 良好 (60-79分)：${goodStudents} 人\n`;
+            summary += `- 🔴 需加強 (<60分)：${needsHelp} 人\n\n`;
+
+            summary += `## 🏆 學生排名 (Top 5)\n`;
+            studentRankings.slice(0, 5).forEach((s, i) => {
+                const weakTags = s.weakestTags.map(t => `${t.tag}(${t.errorCount}次)`).join(', ') || '無';
+                summary += `${i+1}. ${s.student}: 平均 ${s.avg} 分 (${s.assignments} 次作業) | 弱點: ${weakTags}\n`;
+            });
+
+            if (studentRankings.length > 5) {
+                summary += `\n## ⚠️ 需關注學生 (後段 3 名)\n`;
+                studentRankings.slice(-3).reverse().forEach((s, i) => {
+                    const weakTags = s.weakestTags.map(t => `${t.tag}(${t.errorCount}次)`).join(', ') || '無';
+                    summary += `${i+1}. ${s.student}: 平均 ${s.avg} 分 (${s.assignments} 次作業) | 弱點: ${weakTags}\n`;
+                });
+            }
+
+            summary += `\n## 🏷️ 知識點錯誤統計 (Top 5 弱點)\n`;
+            if (Object.keys(tagErrorStats).length > 0) {
+                Object.entries(tagErrorStats)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .forEach(([tag, count], i) => {
+                        summary += `${i+1}. ${tag}: ${count} 次錯誤\n`;
+                    });
+            } else {
+                summary += `暫無詳細標籤錯誤數據\n`;
+            }
+
+            // 🔥 新增：逐題錯誤詳情（前 10 題）
+            if (detailedErrors.length > 0) {
+                summary += `\n## 📝 詳細錯題分析 (前 10 題)\n`;
+                detailedErrors.slice(0, 10).forEach((err, i) => {
+                    summary += `${i+1}. ${err.student} - ${err.exam}\n`;
+                    summary += `   題目: ${err.question.substring(0, 50)}...\n`;
+                    summary += `   得分: ${err.score}/${err.maxScore} | 標籤: ${err.tags}\n`;
+                });
+            }
+
+            return summary;
+        }
+
+
+        // HTML 轉義
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 創建圖表
+        function createChart(canvasId, chartData) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error('找不到圖表畫布:', canvasId);
+                return;
+            }
+
+            // 判斷是否為橫向圖表，動態設定高度
+            const isHorizontal = chartData.horizontal === true;
+            if (isHorizontal) {
+                // 橫向圖表：根據標籤數量動態計算高度（每個標籤約 50px）
+                const itemCount = chartData.labels.length;
+                const calculatedHeight = Math.max(300, itemCount * 50 + 100);
+                canvas.style.height = calculatedHeight + 'px';
+            } else {
+                // 垂直圖表：使用固定高度
+                canvas.style.height = '400px';
+            }
+
+            const ctx = canvas.getContext('2d');
+            
+            // 預設配色
+            const colors = [
+                'rgba(102, 126, 234, 0.8)',
+                'rgba(118, 75, 162, 0.8)',
+                'rgba(237, 100, 166, 0.8)',
+                'rgba(255, 154, 158, 0.8)',
+                'rgba(250, 208, 196, 0.8)',
+                'rgba(155, 207, 232, 0.8)',
+                'rgba(162, 197, 219, 0.8)',
+                'rgba(206, 224, 233, 0.8)'
+            ];
+
+            const backgroundColors = chartData.datasets[0].backgroundColor || colors.slice(0, chartData.labels.length);
+            const borderColors = chartData.datasets[0].borderColor || colors.slice(0, chartData.labels.length).map(c => c.replace('0.8', '1'));
+
+            // 🔥 智能判斷圖表類型（支援更多類型）
+            const chartType = isHorizontal ? 'bar' : (chartData.type || 'bar');
+            
+            // 🔥 圓形圖表（pie/doughnut/radar/polarArea）不需要座標軸
+            const isCircularChart = ['pie', 'doughnut', 'radar', 'polarArea'].includes(chartType);
+            
+            const config = {
+                type: chartType,
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: chartData.datasets[0].label || '數據',
+                        data: chartData.datasets[0].data,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 2,
+                        // 🔥 折線圖特殊配置
+                        tension: chartType === 'line' ? 0.4 : 0,
+                        fill: chartType === 'line' ? true : false,
+                        pointRadius: chartType === 'line' ? 5 : 0,
+                        pointHoverRadius: chartType === 'line' ? 8 : 0
+                    }]
+                },
+                options: {
+                    indexAxis: isHorizontal ? 'y' : 'x',  // 橫向顯示
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 10,
+                            top: 20,
+                            bottom: isHorizontal ? 20 : 120  // 橫向圖不需要太多底部空間
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: isCircularChart,  // 🔥 圓形圖表顯示圖例
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    let value;
+                                    
+                                    // 🔥 根據圖表類型取得正確的值
+                                    if (isCircularChart) {
+                                        value = context.parsed || context.parsed.r || 0;
+                                        // 圓餅圖顯示百分比
+                                        if (chartType === 'pie' || chartType === 'doughnut') {
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return `${context.label}: ${value} (${percentage}%)`;
+                                        }
+                                    } else {
+                                        value = isHorizontal ? 
+                                            (context.parsed.x || 0) : 
+                                            (context.parsed.y || context.parsed || 0);
+                                    }
+                                    
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    },
+                    // 🔥 只有非圓形圖表需要座標軸
+                    scales: !isCircularChart ? 
+                        (isHorizontal ? {
+                            // 橫向長條圖：Y軸顯示標籤，X軸顯示數值
+                            x: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    autoSkip: false,
+                                    font: {
+                                        size: 11
+                                    },
+                                    padding: 5
+                                }
+                            }
+                        } : {
+                            // 垂直長條圖（原設定）
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    autoSkip: false,
+                                    font: {
+                                        size: 10
+                                    },
+                                    padding: 10
+                                },
+                                grid: {
+                                    offset: true
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }) : {}
+                }
+            };
+
+            new Chart(ctx, config);
+        }
+
+        // 檢測用戶是否請求圖表
+        function detectChartRequest(question) {
+            const chartKeywords = ['圖表', '圓餅圖', '長條圖', '折線圖', '柱狀圖', '分布圖', '視覺化', '圖形', '統計圖', '錯題', '弱點', '趨勢', '比例', '占比', '分布', '排名'];
+            return chartKeywords.some(keyword => question.includes(keyword));
+        }
+
+        // 🔥 新增：智能判斷圖表類型
+        function detectChartType(question) {
+            // 圓餅圖關鍵詞
+            if (question.includes('圓餅') || question.includes('餅圖') || 
+                question.includes('比例') || question.includes('占比') || 
+                question.includes('百分比分布')) {
+                return 'pie';
+            }
+            
+            // 甜甜圈圖關鍵詞
+            if (question.includes('甜甜圈') || question.includes('環圈')) {
+                return 'doughnut';
+            }
+            
+            // 折線圖關鍵詞
+            if (question.includes('折線') || question.includes('趨勢') || 
+                question.includes('變化') || question.includes('歷次') || 
+                question.includes('進步')) {
+                return 'line';
+            }
+            
+            // 雷達圖關鍵詞
+            if (question.includes('雷達') || question.includes('能力') || 
+                question.includes('多維') || question.includes('全面')) {
+                return 'radar';
+            }
+            
+            // 橫向長條圖關鍵詞
+            if (question.includes('排名') || question.includes('排序') || 
+                question.includes('前幾名') || question.includes('Top')) {
+                return 'horizontal-bar';
+            }
+            
+            // 默認長條圖
+            return 'bar';
+        }
+
+        // 生成圖表數據
+        async function generateChartData(question) {
+            try {
+                // 🔥 智能判斷圖表類型
+                const detectedChartType = detectChartType(question);
+                console.log('🎯 檢測到的圖表類型:', detectedChartType);
+                
+                // 分析用戶問題，決定生成什麼圖表
+                const gradings = studentData.gradings || [];
+                
+                // 錯題分布圖
+                if (question.includes('錯題') || question.includes('標籤') || question.includes('弱點') || question.includes('困難')) {
+            const tagStats = {};
+            gradings.forEach(g => {
+                // 優先使用逐題結果（更精準）
+                if (g.hasDetailedData && Array.isArray(g.questionDetails)) {
+                    g.questionDetails.forEach(q => {
+                        (q.tags || ['未分類']).forEach(tag => {
+                            if (!tagStats[tag]) {
+                                tagStats[tag] = { total: 0, errors: 0 };
+                            }
+                            tagStats[tag].total++;
+                            if (!q.isCorrect) tagStats[tag].errors++;
+                        });
+                    });
+                } else if (g.tags) {
+                    // 後備：無逐題資料時，使用整份作業與及格線近似估計
+                    g.tags.forEach(tag => {
+                        if (!tagStats[tag]) {
+                            tagStats[tag] = { total: 0, errors: 0 };
+                        }
+                        tagStats[tag].total++;
+                        if ((g.score || 0) < 60) tagStats[tag].errors++;
+                    });
+                }
+            });
+
+                    if (Object.keys(tagStats).length === 0) {
+                        return null; // 沒有標籤數據
+                    }
+
+                    // 排序並取前 10 個錯誤最多的標籤
+                    const topTags = Object.entries(tagStats)
+                        .sort((a, b) => b[1].errors - a[1].errors)
+                        .slice(0, 10);
+
+                    // 🔥 使用智能檢測的圖表類型
+                    const chartType = detectedChartType === 'horizontal-bar' ? 'bar' : detectedChartType;
+
+                    return {
+                        title: '錯題標籤分布 (Top 10)',
+                        type: chartType,
+                        horizontal: detectedChartType === 'horizontal-bar',  // 橫向長條圖
+                        labels: topTags.map(([tag]) => tag),
+                        datasets: [{
+                            label: '錯誤次數',
+                            data: topTags.map(([, stats]) => stats.errors)
+                        }]
+                    };
+                }
+                
+                // 分數分布圖（長條圖或圓餅圖）
+                if (question.includes('分數') || question.includes('成績') || question.includes('分布')) {
+            const scoreRanges = {
+                '0-20': 0,
+                '21-40': 0,
+                '41-60': 0,
+                '61-80': 0,
+                '81-100': 0
+            };
+                    
+            gradings.forEach(g => {
+                        const score = g.score || 0;
+                if (score <= 20) scoreRanges['0-20']++;
+                else if (score <= 40) scoreRanges['21-40']++;
+                else if (score <= 60) scoreRanges['41-60']++;
+                else if (score <= 80) scoreRanges['61-80']++;
+                else scoreRanges['81-100']++;
+            });
+
+                    // 🔥 使用智能檢測的圖表類型
+                    const chartType = detectedChartType === 'horizontal-bar' ? 'bar' : detectedChartType;
+                    
+                    return {
+                        title: '學生分數分布',
+                        type: chartType,
+                        horizontal: detectedChartType === 'horizontal-bar',
+                        labels: Object.keys(scoreRanges),
+                        datasets: [{
+                            label: '學生人數',
+                            data: Object.values(scoreRanges)
+                        }]
+                    };
+                }
+                
+                // 學生表現排名（長條圖）
+                if (question.includes('排名') || question.includes('表現') || question.includes('學生')) {
+                    const studentScores = {};
+                    gradings.forEach(g => {
+                        const student = g.student_email || g.student_name || '未知';
+                        if (!studentScores[student]) {
+                            studentScores[student] = { total: 0, count: 0 };
+                        }
+                        studentScores[student].total += g.score || 0;
+                        studentScores[student].count++;
+                    });
+
+                    const studentRankings = Object.entries(studentScores)
+                        .map(([student, data]) => ({
+                            student,
+                            avg: Math.round(data.total / data.count)
+                        }))
+                        .sort((a, b) => b.avg - a.avg)
+                        .slice(0, 10);
+
+                    // 🔥 排名通常使用橫向長條圖
+                    const chartType = detectedChartType === 'horizontal-bar' ? 'bar' : detectedChartType;
+
+                    return {
+                        title: '學生平均分數排名 (Top 10)',
+                        type: chartType,
+                        horizontal: detectedChartType === 'horizontal-bar' || detectedChartType === 'bar',
+                        labels: studentRankings.map(s => s.student),
+                        datasets: [{
+                            label: '平均分數',
+                            data: studentRankings.map(s => s.avg)
+                        }]
+                    };
+                }
+
+                // 🔥 預設：根據檢測類型生成分數分布圖
+                const scoreRanges = {
+                    '0-20': 0,
+                    '21-40': 0,
+                    '41-60': 0,
+                    '61-80': 0,
+                    '81-100': 0
+                };
+                
+                gradings.forEach(g => {
+                    const score = g.score || 0;
+                    if (score <= 20) scoreRanges['0-20']++;
+                    else if (score <= 40) scoreRanges['21-40']++;
+                    else if (score <= 60) scoreRanges['41-60']++;
+                    else if (score <= 80) scoreRanges['61-80']++;
+                    else scoreRanges['81-100']++;
+                });
+
+                // 🔥 使用智能檢測的圖表類型
+                const finalChartType = detectedChartType === 'horizontal-bar' ? 'bar' : detectedChartType;
+
+                return {
+                    title: '學生分數分布',
+                    type: finalChartType,
+                    horizontal: detectedChartType === 'horizontal-bar',
+                    labels: Object.keys(scoreRanges),
+                    datasets: [{
+                        label: '學生人數',
+                        data: Object.values(scoreRanges)
+                    }]
+                };
+
+            } catch (error) {
+                console.error('生成圖表數據失敗:', error);
+                return null;
+            }
+        }
+
+        // 登出功能
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
+            try {
+                await auth.signOut();
+                window.location.href = '../dashboard.html';
+            } catch (error) {
+                console.error('登出失敗:', error);
+            }
+        });
+
+        // 自動調整輸入框高度
+        document.getElementById('chatInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+    </script>
+
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>

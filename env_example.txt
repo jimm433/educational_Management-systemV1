@@ -1,0 +1,17 @@
+# Google 表單自動批改系統環境變數設定
+
+# AI API 金鑰（至少需要設定一個）
+OPENAI_API_KEY=your-openai-api-key-here
+ANTHROPIC_API_KEY=your-anthropic-api-key-here
+GEMINI_API_KEY=your-gemini-api-key-here
+
+# 批改系統設定
+CHECKER_API_KEY=your-checker-api-key-here
+
+# Flask 設定
+FLASK_HOST=0.0.0.0
+FLASK_PORT=5000
+FLASK_DEBUG=True
+
+# 其他設定
+LOG_LEVEL=INFO

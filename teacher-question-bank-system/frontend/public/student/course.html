@@ -1,0 +1,779 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的課程 - 學生系統</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher.css?v=5">
+    <link rel="stylesheet" href="../assets/css/teacher-question.css?v=5">
+    <link rel="stylesheet" href="../assets/css/layout-fix.css?v=5">
+    <link rel="stylesheet" href="../assets/css/student.css?v=5">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- 載入畫面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">載入課程中...</p>
+    </div>
+
+    <!-- 主要應用程式 -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- 側邊導航欄 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="app-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">學生系統</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要功能</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>儀表板</span>
+                    </a>
+                    <a href="course.html" class="nav-item active">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 11l7 4 7-4M3 15l7 4 7-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>我的課程</span>
+                    </a>
+                    <a href="exam.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>考試測驗</span>
+                    </a>
+                    <a href="assignment.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>作業繳交</span>
+                    </a>
+                    <a href="result.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        <span>成績查詢</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">學習工具</div>
+                    <a href="profile.html" class="nav-item">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>個人資料</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主要內容區 -->
+        <div class="main-wrapper">
+            <!-- 頂部標題欄 -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="breadcrumb">
+                        <a href="dashboard.html">儀表板</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span>我的課程</span>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name" id="userName">學生</div>
+                            <div class="user-role">學生</div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">登出</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 內容區域 -->
+            <main class="main-content">
+                <!-- 頁面標題 -->
+                <div class="page-header">
+                    <h1 class="page-title">我的課程</h1>
+                    <p class="page-subtitle">管理您加入的所有課程</p>
+                </div>
+
+                <!-- 工具欄 -->
+                <div class="toolbar">
+                    <div class="search-section">
+                        <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜尋課程名稱或教師...">
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="btn btn-primary" onclick="openJoinCourseModal()">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 5v10M5 10h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            加入課程
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshCourses()">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M3 10a7 7 0 0112-5M17 10a7 7 0 01-12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            重新整理
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalCourses">0</div>
+                        <div class="stat-label">總課程數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M5 10l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="activeCourses">0</div>
+                        <div class="stat-label">進行中</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="totalExams">0</div>
+                        <div class="stat-label">總考試數</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 14v-4M10 14V8M16 14v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-number" id="averageProgress">0%</div>
+                        <div class="stat-label">平均進度</div>
+                    </div>
+                </div>
+
+                <!-- 課程列表 -->
+                <div class="section-card">
+                    <div class="courses-grid" id="coursesGrid">
+                        <!-- 課程卡片將動態載入 -->
+                    </div>
+
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <div class="empty-icon">📚</div>
+                        <h3>還沒有加入任何課程</h3>
+                        <p>點擊「加入課程」按鈕開始您的學習之旅</p>
+                        <button class="btn btn-primary" onclick="openJoinCourseModal()">加入課程</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 加入課程模態框 -->
+    <div class="modal" id="joinCourseModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">加入課程</h2>
+                <button class="modal-close" onclick="closeJoinCourseModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">課程代碼</label>
+                    <input type="text" class="form-input" id="courseCode" placeholder="請輸入課程代碼（例如：MATH101）" style="text-transform: uppercase;" onkeyup="this.value = this.value.toUpperCase()">
+                    <small style="color: #718096; margin-top: 5px; display: block;">
+                        💡 請向您的老師索取課程代碼（不區分大小寫）
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeJoinCourseModal()">取消</button>
+                <button class="btn btn-primary" onclick="joinCourseByCode()">加入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 課程詳情模態框 -->
+    <div class="modal" id="courseDetailsModal" style="display: none;">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 class="modal-title">課程詳情</h2>
+                <button class="close-btn" onclick="closeCourseDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 課程基本資訊 -->
+                <div class="section-card" style="margin-bottom: 20px;">
+                    <h3 id="detailCourseName" style="margin-bottom: 10px; font-size: 20px;">課程名稱</h3>
+                    <p id="detailCourseDesc" style="color: #718096; margin-bottom: 15px;">課程描述</p>
+
+                    <div class="course-meta" style="margin-bottom: 15px;">
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            <span id="detailTeacherName">教師名稱</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 3L3 7l7 4 7-4-7-4z" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            <span id="detailCourseCode">課程代碼</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            <span id="detailDuration">課程時間</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                        <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: 600; color: #3182ce;" id="detailExamCount">0</div>
+                            <div style="font-size: 12px; color: #718096; margin-top: 5px;">考試測驗</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: 600; color: #38a169;" id="detailAssignmentCount">0</div>
+                            <div style="font-size: 12px; color: #718096; margin-top: 5px;">作業任務</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: 600; color: #d69e2e;" id="detailProgress">0%</div>
+                            <div style="font-size: 12px; color: #718096; margin-top: 5px;">學習進度</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 學習記錄 -->
+                <div class="section-card">
+                    <h4 style="margin-bottom: 10px;">學習記錄</h4>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; padding: 10px; background: #f7fafc; border-radius: 6px;">
+                            <span style="color: #718096;">註冊時間</span>
+                            <span id="detailEnrolledAt">--</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px; background: #f7fafc; border-radius: 6px;">
+                            <span style="color: #718096;">最後訪問</span>
+                            <span id="detailLastAccess">--</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px; background: #f7fafc; border-radius: 6px;">
+                            <span style="color: #718096;">訪問次數</span>
+                            <span id="detailAccessCount">0 次</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCourseDetailsModal()">關閉</button>
+                <button class="btn btn-primary" onclick="enterCourseFromDetails()">進入課程</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/firebase-config.js"></script>
+    <!-- ?航炊???翰?炎??-->
+    <script src="../assets/js/error-handler.js"></script>
+    <script>
+        console.log('📚 我的課程頁面載入中...');
+
+        let currentUser = null;
+        let myCourses = [];
+        let currentCourseDetail = null;
+
+        // 頁面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        async function initializePage() {
+            try {
+                // Firebase 已經在 firebase-config.js 中初始化
+                // 直接使用全域的 auth 和 db
+
+                // 檢查登入狀態
+                await checkAuth();
+
+                // 載入課程
+                await loadMyCourses();
+
+                // 隱藏載入畫面
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+
+                // 綁定事件
+                bindEvents();
+
+                console.log('✅ 我的課程頁面初始化完成');
+            } catch (error) {
+                console.error('❌ 初始化失敗:', error);
+                alert('初始化失敗，請重新登入');
+                window.location.href = '../index.html';
+            }
+        }
+
+        function checkAuth() {
+            return new Promise((resolve, reject) => {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('userName').textContent = user.displayName || user.email;
+                        console.log('✅ 使用者已登入:', user.email);
+                        resolve();
+                    } else {
+                        reject(new Error('未登入'));
+                    }
+                });
+            });
+        }
+
+        async function loadMyCourses() {
+            try {
+                console.log('📚 載入我的課程...');
+                myCourses = [];
+
+                // 載入課程註冊記錄
+                const enrollmentsSnapshot = await db.collection('courseEnrollments')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('status', '==', 'enrolled')
+                    .get();
+
+                console.log('🔍 找到註冊記錄:', enrollmentsSnapshot.size);
+
+                if (enrollmentsSnapshot.empty) {
+                    showEmptyState();
+                    updateStatistics();
+                    return;
+                }
+
+                // 載入每個課程的詳細資料
+                for (const enrollmentDoc of enrollmentsSnapshot.docs) {
+                    const enrollment = enrollmentDoc.data();
+                    const courseDoc = await db.collection('courses').doc(enrollment.courseId).get();
+
+                    if (courseDoc.exists) {
+                        const courseOriginalData = courseDoc.data();
+                        const courseData = {
+                            id: courseDoc.id,
+                            enrollmentId: enrollmentDoc.id,
+                            ...enrollment,
+                            ...courseOriginalData
+                        };
+
+                        // 確保有 teacherName（優先使用課程資料中的 teacherName）
+                        console.log('📊 課程資料檢查:', {
+                            id: courseData.id,
+                            name: courseData.name,
+                            courseTeacherName: courseOriginalData.teacherName,
+                            enrollmentTeacherName: enrollment.teacherName,
+                            instructorName: courseOriginalData.instructorName,
+                            finalTeacherName: courseData.teacherName
+                        });
+
+                        if (!courseData.teacherName) {
+                            courseData.teacherName = enrollment.teacherName || courseOriginalData.teacherName || courseOriginalData.instructorName || '未知教師';
+                            console.log('🔄 更新後的 teacherName:', courseData.teacherName);
+                        }
+
+                        // 載入課程統計
+                        await loadCourseStats(courseData);
+                        myCourses.push(courseData);
+                    }
+                }
+
+                // 按註冊時間排序（最新的在前）
+                myCourses.sort((a, b) => {
+                    const timeA = a.enrolledAt ? (a.enrolledAt.toDate ? a.enrolledAt.toDate() : new Date(a.enrolledAt)) : new Date(0);
+                    const timeB = b.enrolledAt ? (b.enrolledAt.toDate ? b.enrolledAt.toDate() : new Date(b.enrolledAt)) : new Date(0);
+                    return timeB - timeA;
+                });
+
+                console.log('✅ 載入了', myCourses.length, '個課程');
+                renderCourses();
+                updateStatistics();
+            } catch (error) {
+                console.error('❌ 載入課程失敗:', error);
+                showEmptyState();
+            }
+        }
+
+        async function loadCourseStats(courseData) {
+            try {
+                // 載入考試數量
+                const examsSnapshot = await db.collection('exams')
+                    .where('courseId', '==', courseData.id)
+                    .get();
+                courseData.examCount = examsSnapshot.size;
+
+                // 載入作業數量
+                const assignmentsSnapshot = await db.collection('assignments')
+                    .where('courseId', '==', courseData.id)
+                    .get();
+                courseData.assignmentCount = assignmentsSnapshot.size;
+
+                // 載入已提交作業數量
+                const submissionsSnapshot = await db.collection('submissions')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('courseId', '==', courseData.id)
+                    .get();
+                courseData.submissionCount = submissionsSnapshot.size;
+
+                // 計算進度
+                courseData.progress = courseData.assignmentCount > 0 ?
+                    Math.round((courseData.submissionCount / courseData.assignmentCount) * 100) :
+                    0;
+            } catch (error) {
+                console.warn('⚠️ 載入課程統計失敗:', error);
+                courseData.examCount = 0;
+                courseData.assignmentCount = 0;
+                courseData.progress = 0;
+            }
+        }
+
+        function renderCourses() {
+            const container = document.getElementById('coursesGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (myCourses.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            container.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            let html = '';
+            myCourses.forEach(course => {
+                html += createCourseCard(course);
+            });
+            container.innerHTML = html;
+        }
+
+        function createCourseCard(course) {
+            const statusClass = course.status === 'completed' ? 'completed' : 'active';
+            const statusText = course.status === 'completed' ? '已完成' : '進行中';
+
+            return `
+                <div class="course-card">
+                    <div class="course-card-header">
+                        <h3 class="course-card-title">${course.name || course.courseName || '未命名課程'}</h3>
+                        <span class="badge badge-${statusClass}">${statusText}</span>
+                    </div>
+                    <p class="course-card-desc">${course.description || '無描述'}</p>
+                    <div class="course-meta">
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            ${course.teacherName || '未知教師'}
+                        </div>
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            ${course.examCount || 0} 個考試
+                        </div>
+                        <div class="meta-item">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <path d="M8 2v4M12 2v4" stroke="currentColor" stroke-width="1.5"/>
+                                <rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            ${course.assignmentCount || 0} 個作業
+                        </div>
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>學習進度</span>
+                            <span>${course.progress || 0}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${course.progress || 0}%"></div>
+                        </div>
+                    </div>
+                    <div class="course-card-footer">
+                        <button class="btn btn-sm btn-primary" onclick="enterCourse('${course.id}')">進入課程</button>
+                        <button class="btn btn-sm btn-secondary" onclick="viewCourseDetails('${course.id}')">查看詳情</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStatistics() {
+            document.getElementById('totalCourses').textContent = myCourses.length;
+
+            const activeCourses = myCourses.filter(c => c.status !== 'completed').length;
+            document.getElementById('activeCourses').textContent = activeCourses;
+
+            const totalExams = myCourses.reduce((sum, c) => sum + (c.examCount || 0), 0);
+            document.getElementById('totalExams').textContent = totalExams;
+
+            const avgProgress = myCourses.length > 0 ?
+                Math.round(myCourses.reduce((sum, c) => sum + (c.progress || 0), 0) / myCourses.length) :
+                0;
+            document.getElementById('averageProgress').textContent = avgProgress + '%';
+        }
+
+        function showEmptyState() {
+            document.getElementById('coursesGrid').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'flex';
+        }
+
+        function enterCourse(courseId) {
+            console.log('🎓 進入課程:', courseId);
+            window.location.href = `course-content.html?courseId=${courseId}`;
+        }
+
+        function viewCourseDetails(courseId) {
+            console.log('📋 查看課程詳情:', courseId);
+
+            // 從 myCourses 中找到對應的課程
+            const course = myCourses.find(c => c.id === courseId);
+            if (!course) {
+                alert('找不到課程資料');
+                return;
+            }
+
+            currentCourseDetail = course;
+
+            // 填充課程詳情
+            document.getElementById('detailCourseName').textContent = course.name || course.courseName || '未命名課程';
+            document.getElementById('detailCourseDesc').textContent = course.description || '無課程描述';
+            document.getElementById('detailTeacherName').textContent = course.teacherName || '未知教師';
+            document.getElementById('detailCourseCode').textContent = course.code || '無代碼';
+
+            // 課程時間
+            let durationText = '全學期';
+            if (course.startDate || course.endDate) {
+                const startDate = course.startDate ? (course.startDate.toDate ? course.startDate.toDate() : new Date(course.startDate)) : null;
+                const endDate = course.endDate ? (course.endDate.toDate ? course.endDate.toDate() : new Date(course.endDate)) : null;
+
+                if (startDate && endDate) {
+                    durationText = `${startDate.getFullYear()}/${startDate.getMonth() + 1}/${startDate.getDate()} - ${endDate.getFullYear()}/${endDate.getMonth() + 1}/${endDate.getDate()}`;
+                } else if (startDate) {
+                    durationText = `${startDate.getFullYear()}/${startDate.getMonth() + 1}/${startDate.getDate()} 開始`;
+                }
+            }
+            document.getElementById('detailDuration').textContent = durationText;
+
+            // 統計數據
+            document.getElementById('detailExamCount').textContent = course.examCount || 0;
+            document.getElementById('detailAssignmentCount').textContent = course.assignmentCount || 0;
+            document.getElementById('detailProgress').textContent = (course.progress || 0) + '%';
+
+            // 學習記錄
+            const enrolledAt = course.enrolledAt ? (course.enrolledAt.toDate ? course.enrolledAt.toDate() : new Date(course.enrolledAt)) : null;
+            document.getElementById('detailEnrolledAt').textContent = enrolledAt ?
+                `${enrolledAt.getFullYear()}/${enrolledAt.getMonth() + 1}/${enrolledAt.getDate()}` : '--';
+
+            const lastAccess = course.lastAccessedAt ? (course.lastAccessedAt.toDate ? course.lastAccessedAt.toDate() : new Date(course.lastAccessedAt)) : null;
+            document.getElementById('detailLastAccess').textContent = lastAccess ?
+                `${lastAccess.getFullYear()}/${lastAccess.getMonth() + 1}/${lastAccess.getDate()} ${lastAccess.getHours()}:${String(lastAccess.getMinutes()).padStart(2, '0')}` : '尚未訪問';
+
+            document.getElementById('detailAccessCount').textContent = (course.accessCount || 0) + ' 次';
+
+            // 顯示模態框
+            document.getElementById('courseDetailsModal').style.display = 'flex';
+        }
+
+        function closeCourseDetailsModal() {
+            document.getElementById('courseDetailsModal').style.display = 'none';
+            currentCourseDetail = null;
+        }
+
+        function enterCourseFromDetails() {
+            if (currentCourseDetail) {
+                enterCourse(currentCourseDetail.id);
+            }
+        }
+
+        function openJoinCourseModal() {
+            document.getElementById('joinCourseModal').style.display = 'flex';
+        }
+
+        function closeJoinCourseModal() {
+            document.getElementById('joinCourseModal').style.display = 'none';
+            document.getElementById('courseCode').value = '';
+        }
+
+        async function joinCourseByCode() {
+            const inputCode = document.getElementById('courseCode').value.trim();
+            if (!inputCode) {
+                alert('請輸入課程代碼');
+                return;
+            }
+
+            const courseCode = inputCode.toUpperCase(); // 統一轉換為大寫
+
+            try {
+                console.log('🔍 搜尋課程代碼:', courseCode);
+
+                // 搜尋課程（Firestore 區分大小寫，所以我們統一用大寫搜尋）
+                const coursesSnapshot = await db.collection('courses')
+                    .where('code', '==', courseCode)
+                    .where('status', '==', 'active')
+                    .limit(1)
+                    .get();
+
+                if (coursesSnapshot.empty) {
+                    alert(`找不到課程代碼：${courseCode}\n\n提示：課程代碼不區分大小寫`);
+                    return;
+                }
+
+                const courseDoc = coursesSnapshot.docs[0];
+                const courseData = courseDoc.data();
+
+                // 檢查是否已加入
+                const existingEnrollment = await db.collection('courseEnrollments')
+                    .where('studentId', '==', currentUser.uid)
+                    .where('courseId', '==', courseDoc.id)
+                    .where('status', '==', 'enrolled')
+                    .get();
+
+                if (!existingEnrollment.empty) {
+                    alert('您已經加入這個課程了');
+                    closeJoinCourseModal();
+                    return;
+                }
+
+                // 建立註冊記錄
+                await db.collection('courseEnrollments').add({
+                    studentId: currentUser.uid,
+                    studentName: currentUser.displayName || currentUser.email,
+                    studentEmail: currentUser.email || '',
+                    courseId: courseDoc.id,
+                    courseName: courseData.name || courseData.courseName || '未命名課程',
+                    courseCode: courseData.code || '',
+                    teacherId: courseData.teacherId || courseData.createdBy || '',
+                    teacherName: courseData.teacherName || courseData.instructorName || '未知教師',
+                    status: 'enrolled',
+                    enrolledAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastAccessedAt: null,
+                    accessCount: 0,
+                    progress: 0
+                });
+
+                // 更新課程學生數量
+                await db.collection('courses').doc(courseDoc.id).update({
+                    studentCount: firebase.firestore.FieldValue.increment(1)
+                });
+
+                alert('🎉 成功加入課程：' + courseData.name);
+                closeJoinCourseModal();
+
+                // 重新載入課程列表
+                await loadMyCourses();
+            } catch (error) {
+                console.error('❌ 加入課程失敗:', error);
+                alert('加入課程失敗：' + error.message);
+            }
+        }
+
+        function refreshCourses() {
+            window.location.reload();
+        }
+
+        function bindEvents() {
+            // 登出按鈕
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = '../index.html';
+                }).catch(error => {
+                    console.error('登出失敗:', error);
+                });
+            });
+
+            // 搜尋功能
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filtered = myCourses.filter(course => {
+                    const name = (course.name || course.courseName || '').toLowerCase();
+                    const teacher = (course.teacherName || '').toLowerCase();
+                    return name.includes(searchTerm) || teacher.includes(searchTerm);
+                });
+
+                // 渲染篩選後的課程
+                const container = document.getElementById('coursesGrid');
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>找不到符合的課程</p></div>';
+                } else {
+                    let html = '';
+                    filtered.forEach(course => {
+                        html += createCourseCard(course);
+                    });
+                    container.innerHTML = html;
+                }
+            });
+
+            // 模態框點擊外部關閉
+            document.getElementById('joinCourseModal').addEventListener('click', (e) => {
+                if (e.target.id === 'joinCourseModal') {
+                    closeJoinCourseModal();
+                }
+            });
+
+            document.getElementById('courseDetailsModal').addEventListener('click', (e) => {
+                if (e.target.id === 'courseDetailsModal') {
+                    closeCourseDetailsModal();
+                }
+            });
+
+            // Enter 鍵加入課程
+            document.getElementById('courseCode').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    joinCourseByCode();
+                }
+            });
+        }
+    </script>
+    <script src="../assets/js/mobile-menu.js"></script>
+</body>
+
+</html>
